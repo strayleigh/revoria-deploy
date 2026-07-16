@@ -1,0 +1,22 @@
+body{
+    overflow: hidden;
+}
+
+a{
+    text-decoration : none;
+    color : black;
+}
+
+.btn-success{
+    background-color : rgb(168, 120, 56);
+    border : none;
+}
+
+.btn-success:hover{
+    background-color : rgb(146, 87, 19);
+}
+
+.table-container {
+    overflow-x: auto;
+    max-height: 400px; /* Adjust the maximum height as needed */
+}
