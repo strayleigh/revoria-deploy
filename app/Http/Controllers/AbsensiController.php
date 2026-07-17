@@ -11,10 +11,12 @@ class AbsensiController extends Controller
     public function index(Request $request)
     {
         // Daftar kegiatan untuk card grid (tampilan baru mirip kartar)
-        $kegiatans = Kegiatan::when(
-            $request->status_kegiatan,
-            fn($q, $s) => $q->where('status', $s)
-        )->orderByDesc('tanggal')->get();
+        $status = $request->status ?? $request->status_kegiatan;
+        $kegiatans = Kegiatan::query()
+            ->when($request->search, fn($q, $s) => $q->whereRaw('LOWER(nama_kegiatan) LIKE ?', ["%" . strtolower($s) . "%"]))
+            ->when($status, fn($q, $s) => $q->where('status', $s))
+            ->orderByDesc('tanggal')
+            ->get();
 
         // Ringkasan absensi milik user yang login
         $anggota        = auth()->user()?->anggota;
@@ -71,6 +73,10 @@ class AbsensiController extends Controller
 
     public function edit(Absensi $absensi)
     {
+        if (auth()->user()->name !== 'admin') {
+            abort(403, 'Hanya user admin yang dapat mengelola (edit/hapus) data absensi.');
+        }
+
         $kegiatans = Kegiatan::orderByDesc('tanggal')->get();
 
         return view('absensi.edit', compact('absensi', 'kegiatans'));
@@ -78,6 +84,10 @@ class AbsensiController extends Controller
 
     public function update(Request $request, Absensi $absensi)
     {
+        if (auth()->user()->name !== 'admin') {
+            abort(403, 'Hanya user admin yang dapat mengelola (edit/hapus) data absensi.');
+        }
+
         $request->validate([
             'kode_kegiatan'   => 'required|exists:kegiatan,kode_kegiatan',
             'tanggal_absensi' => 'required|date',
@@ -92,8 +102,20 @@ class AbsensiController extends Controller
 
     public function destroy(Absensi $absensi)
     {
+        if (auth()->user()->name !== 'admin') {
+            abort(403, 'Hanya user admin yang dapat mengelola (edit/hapus) data absensi.');
+        }
+
         $absensi->delete();
 
         return redirect()->route('absensi.index')->with('success', 'Absensi berhasil dihapus.');
+    }
+
+    public function getAbsensiByKegiatan($kodeKegiatan)
+    {
+        $absensis = Absensi::with('anggota')
+            ->where('kode_kegiatan', $kodeKegiatan)
+            ->get();
+        return response()->json($absensis);
     }
 }

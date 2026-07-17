@@ -11,6 +11,35 @@
         </div>
     @endif
 
+    <!-- ================= FILTER & SEARCH ================= -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body">
+            <form action="{{ route('dokumen.index') }}" method="GET">
+                <div class="row g-3 align-items-center">
+                    <div class="col-lg">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" name="search" class="form-control border-start-0 ps-0"
+                                   placeholder="Cari nama kegiatan..." value="{{ request('search') }}">
+                        </div>
+                    </div>
+                    <div class="col-lg-auto">
+                        <select name="status" class="form-select" onchange="this.form.submit()">
+                            <option value="">Semua Status</option>
+                            <option value="terjadwal"   {{ request('status') == 'terjadwal'   ? 'selected' : '' }}>Terjadwal</option>
+                            <option value="berlangsung" {{ request('status') == 'berlangsung' ? 'selected' : '' }}>Berlangsung</option>
+                            <option value="selesai"     {{ request('status') == 'selesai'     ? 'selected' : '' }}>Selesai</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-auto d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-secondary px-3"><i class="bi bi-search"></i></button>
+                        <a href="{{ route('dokumen.index') }}" class="btn btn-outline-secondary px-3"><i class="bi bi-x-lg"></i></a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- ================= LIST KEGIATAN (Card Grid) ================= -->
     @php
         $iconMap = [
@@ -34,32 +63,42 @@
                 $map = $iconMap[$kegiatan->status] ?? $iconPool[$i % count($iconPool)];
             @endphp
             <div class="col-lg-4">
-                <div class="card kegiatan-card shadow-sm border-0 h-100"
+                <div class="card kegiatan-card dokumen-card shadow-sm border-0"
                      role="button"
                      onclick="window.location.href='{{ route('dokumen.folder', $kegiatan->kode_kegiatan) }}'">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="icon-kegiatan {{ $map['bg'] }} {{ $map['text'] }}">
-                                <i class="bi {{ $map['icon'] }}"></i>
+                    <div class="card-body d-flex flex-column justify-content-between h-100 p-4">
+                        <div>
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="icon-kegiatan {{ $map['bg'] }} {{ $map['text'] }} rounded-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; flex-shrink: 0;">
+                                    <i class="bi {{ $map['icon'] }} fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="font-size: 15px;">{{ $kegiatan->nama_kegiatan }}</h6>
+                                    <small class="text-muted d-block" style="font-size: 12px;">
+                                        <i class="bi bi-calendar3 me-1"></i>{{ $kegiatan->tanggal?->format('d M Y') }}
+                                        @if($kegiatan->lokasi) &bull; <i class="bi bi-geo-alt-fill me-1 text-danger"></i>{{ $kegiatan->lokasi }} @endif
+                                    </small>
+                                </div>
                             </div>
-                            <div>
-                                <h6 class="fw-bold mb-0">{{ $kegiatan->nama_kegiatan }}</h6>
-                                <small class="text-muted">
-                                    {{ $kegiatan->tanggal?->format('d M Y') }}
-                                    @if($kegiatan->lokasi) &bull; {{ $kegiatan->lokasi }} @endif
-                                </small>
+                            <hr class="my-3 opacity-25">
+                            <div style="height: 60px; overflow: hidden;">
+                                @if($kegiatan->deskripsi)
+                                    <p class="text-muted small mb-0" style="line-height: 1.5;">{{ Str::limit($kegiatan->deskripsi, 100) }}</p>
+                                @else
+                                    <p class="text-muted small mb-0" style="visibility: hidden;">-</p>
+                                @endif
                             </div>
                         </div>
-                        @if($kegiatan->deskripsi)
-                            <p class="text-muted small mb-0">{{ Str::limit($kegiatan->deskripsi, 90) }}</p>
-                        @endif
+                        <div class="mt-3 text-end">
+                            <span class="text-primary small fw-semibold"><i class="bi bi-folder2-open me-1"></i> Buka Dokumen</span>
+                        </div>
                     </div>
                 </div>
             </div>
         @empty
             <div class="col-12 text-center py-5 text-muted">
-                <i class="bi bi-folder fs-1 d-block mb-2"></i>
-                Belum ada kegiatan.
+                <i class="bi bi-folder-x fs-1 d-block mb-2"></i>
+                Belum ada kegiatan yang cocok dengan kriteria pencarian Anda.
             </div>
         @endforelse
     </div>

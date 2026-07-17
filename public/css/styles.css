@@ -81,8 +81,8 @@ body {
 ========================= */
 .summary-card {
     background: white;
-    border-radius: 18px;
-    padding: 25px;
+    border-radius: 26px; /* 1.5x larger border radius */
+    padding: 38px 28px; /* 1.5x larger padding */
     text-align: center;
     box-shadow: 0 8px 25px rgba(0,0,0,.08);
     transition: .3s;
@@ -90,6 +90,19 @@ body {
 
 .summary-card:hover {
     transform: translateY(-5px);
+}
+
+.summary-card h3 {
+    font-size: 38px !important; /* 1.5x larger nominal */
+    font-weight: 800;
+}
+
+.summary-card span {
+    font-size: 18px !important; /* 1.5x larger title */
+}
+
+.summary-card small {
+    font-size: 16px !important; /* 1.5x larger subtext */
 }
 
 .icon {
@@ -202,7 +215,7 @@ body {
     border-radius: 18px;
     transition: .3s;
     cursor: pointer;
-    min-height: 165px;
+    min-height: 195px;
     display: flex;
     flex-direction: column;
 }
@@ -332,6 +345,10 @@ body {
     justify-content: center;
     font-size: 22px;
     flex-shrink: 0;
+}
+
+.icon-kegiatan i {
+    margin: 0 !important;
 }
 
 .icon-kegiatan.big {
@@ -672,7 +689,7 @@ html.dark .form-check-input:checked {
 }
 
 html.dark .sidebar {
-    background: #0b1329 !important;
+    background: #020617 !important;
 }
 
 html.dark .sidebar .card {
@@ -706,6 +723,340 @@ html.dark .status-izin {
 
 html.dark .status-belum {
     background: rgba(59, 130, 246, 0.12) !important;
+}
+
+/* Pembalikan Efek Hover untuk Tombol Aksi Cepat (Quick Actions) */
+.quick-action-btn {
+    transition: all 0.3s ease !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    text-decoration: none !important;
+}
+
+.quick-action-btn.btn-kegiatan {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+}
+.quick-action-btn.btn-kegiatan:hover {
+    background-color: transparent !important;
+    color: #0d6efd !important;
+}
+
+.quick-action-btn.btn-absensi {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+    color: #fff !important;
+}
+.quick-action-btn.btn-absensi:hover {
+    background-color: transparent !important;
+    color: #198754 !important;
+}
+
+.quick-action-btn.btn-dokumen {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #0f172a !important;
+}
+.quick-action-btn.btn-dokumen:hover {
+    background-color: transparent !important;
+    color: #ffc107 !important;
+}
+
+.quick-action-btn.btn-keuangan {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #fff !important;
+}
+.quick-action-btn.btn-keuangan:hover {
+    background-color: transparent !important;
+    color: #dc3545 !important;
+}
+
+/* Pagination & Card Footer Dark Mode */
+html.dark .pagination .page-link {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #cbd5e1 !important;
+}
+
+html.dark .pagination .page-link:hover {
+    background-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+html.dark .pagination .page-item.active .page-link {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+}
+
+html.dark .pagination .page-item.disabled .page-link {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+    color: #64748b !important;
+}
+
+html.dark .card-footer {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+/* Ikon Bersih & Simpel untuk Summary Cards */
+.icon-clean {
+    width: 72px !important; /* 1.5x larger icon size */
+    height: 72px !important;
+    border-radius: 18px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px !important;
+    transition: all 0.3s ease;
+}
+
+.icon-clean.icon-green {
+    background-color: rgba(25, 135, 84, 0.1) !important;
+    color: #198754 !important;
+}
+
+.icon-clean.icon-red {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    color: #dc3545 !important;
+}
+
+.icon-clean.icon-orange {
+    background-color: rgba(251, 140, 0, 0.1) !important;
+    color: #fb8c00 !important;
+}
+
+/* Mode Gelap Ikon Bersih */
+html.dark .icon-clean.icon-green {
+    background-color: rgba(52, 211, 153, 0.15) !important;
+    color: #34d399 !important;
+}
+html.dark .icon-clean.icon-red {
+    background-color: rgba(248, 113, 113, 0.15) !important;
+    color: #f87171 !important;
+}
+html.dark .icon-clean.icon-orange {
+    background-color: rgba(251, 146, 60, 0.15) !important;
+    color: #fb923c !important;
+}
+
+/* Header Tabel Transaksi Berwarna Biru */
+.keuangan-table-header {
+    background-color: #0d6efd !important;
+}
+.keuangan-table-header th {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+    border-color: #0b5ed7 !important;
+}
+
+html.dark .keuangan-table-header {
+    background-color: #1e3a8a !important;
+}
+html.dark .keuangan-table-header th {
+    background-color: #1e3a8a !important;
+    color: #f8fafc !important;
+    border-color: #1e293b !important;
+}
+
+/* Efek Klik/Aktif untuk Summary Cards Keuangan di Mode Gelap */
+html.dark .summary-card.border-success {
+    border-color: #34d399 !important;
+    background-color: rgba(52, 211, 153, 0.1) !important;
+}
+
+html.dark .summary-card.border-danger {
+    border-color: #f87171 !important;
+    background-color: rgba(248, 113, 113, 0.1) !important;
+}
+
+html.dark .summary-card.border-warning {
+    border-color: #fb923c !important;
+    background-color: rgba(251, 146, 60, 0.1) !important;
+}
+
+/* Pembatas Cerah untuk Kegiatan Card di Mode Gelap */
+html.dark .kegiatan-card hr {
+    border-color: rgba(255, 255, 255, 0.22) !important;
+    opacity: 1 !important;
+}
+
+.icon-clean.icon-blue {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    color: #0d6efd !important;
+}
+
+.icon-clean.icon-purple {
+    background-color: rgba(111, 66, 193, 0.1) !important;
+    color: #6f42c1 !important;
+}
+
+/* Mode Gelap */
+html.dark .icon-clean.icon-blue {
+    background-color: rgba(96, 165, 250, 0.15) !important;
+    color: #60a5fa !important;
+}
+html.dark .icon-clean.icon-purple {
+    background-color: rgba(192, 132, 252, 0.15) !important;
+    color: #c084fc !important;
+}
+
+/* Pembalikan Efek Hover untuk Tombol Unduh Laporan */
+.download-report-btn {
+    transition: all 0.3s ease !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    text-decoration: none !important;
+    border-radius: 12px !important;
+}
+
+.download-report-btn.btn-blue {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+}
+.download-report-btn.btn-blue:hover {
+    background-color: transparent !important;
+    color: #0d6efd !important;
+}
+
+.download-report-btn.btn-green {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+    color: #fff !important;
+}
+.download-report-btn.btn-green:hover {
+    background-color: transparent !important;
+    color: #198754 !important;
+}
+
+.download-report-btn.btn-orange {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #0f172a !important;
+}
+.download-report-btn.btn-orange:hover {
+    background-color: transparent !important;
+    color: #ffc107 !important;
+}
+
+.download-report-btn.btn-grey {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #fff !important;
+}
+.download-report-btn.btn-grey:hover {
+    background-color: transparent !important;
+    color: #6c757d !important;
+}
+
+/* Dukungan Tema Gelap untuk Input Tanggal & Waktu Bawaan Browser */
+html.dark input[type="date"],
+html.dark input[type="time"] {
+    color-scheme: dark !important;
+}
+
+html.dark input[type="date"]::-webkit-calendar-picker-indicator,
+html.dark input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) !important;
+}
+
+.dokumen-card {
+    min-height: 235px !important;
+}
+
+/* RESPONSIVE LAYOUT & MOBILE SUPPORT */
+@media (max-width: 991.98px) {
+    .content {
+        padding: 24px 16px !important;
+    }
+    #sidebarOffcanvas {
+        background-color: #0f2d5c;
+    }
+    html.dark #sidebarOffcanvas {
+        background-color: #020617 !important;
+    }
+    /* Mengatur warna link di offcanvas agar sesuai dengan desktop sidebar */
+    #sidebarOffcanvas .nav-link {
+        color: rgba(255, 255, 255, 0.85);
+        border-radius: 12px;
+        padding: 12px 18px;
+        transition: all 0.2s;
+    }
+    #sidebarOffcanvas .nav-link i {
+        margin-right: 12px;
+        font-size: 18px;
+        vertical-align: middle;
+    }
+    #sidebarOffcanvas .nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+    #sidebarOffcanvas .nav-link.active {
+        background: #3b82f6 !important; /* Biru terang untuk status aktif */
+        color: white !important;
+        font-weight: 600;
+    }
+    
+    /* --- KARTU DENGAN GRID 2x2 (Dashboard: col-6) --- */
+    .col-6 .summary-card {
+        padding: 22px 10px !important;
+        border-radius: 18px !important;
+    }
+    .col-6 .summary-card h3 {
+        font-size: 33px !important; /* 1.5x larger */
+        margin-bottom: 3px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .col-6 .summary-card span {
+        font-size: 19px !important; /* 1.5x larger */
+    }
+    .col-6 .summary-card small {
+        font-size: 16px !important; /* 1.5x larger */
+        display: block !important;
+    }
+    .col-6 .summary-card .icon-clean {
+        width: 68px !important; /* 1.5x larger */
+        height: 68px !important;
+        font-size: 32px !important; /* 1.5x larger */
+        margin-bottom: 12px !important;
+        border-radius: 14px !important;
+    }
+
+    /* --- KARTU DENGAN GRID 1-BARIS (Keuangan: col-4) --- */
+    .col-4 .summary-card {
+        padding: 16px 5px !important;
+        border-radius: 14px !important;
+    }
+    .col-4 .summary-card h3 {
+        font-size: 22px !important; /* 1.5x larger */
+        margin-bottom: 3px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .col-4 .summary-card span {
+        font-size: 16px !important; /* 1.5x larger */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .col-4 .summary-card small {
+        font-size: 13px !important;
+        display: none !important;
+    }
+    .col-4 .summary-card .icon-clean {
+        width: 54px !important; /* 1.5x larger */
+        height: 54px !important;
+        font-size: 24px !important; /* 1.5x larger */
+        margin-bottom: 8px !important;
+        border-radius: 12px !important;
+    }
 }
 
 

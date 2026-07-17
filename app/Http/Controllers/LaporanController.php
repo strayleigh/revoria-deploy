@@ -40,7 +40,14 @@ class LaporanController extends Controller
             $r->jabatan, $r->status_anggota, $r->tanggal_bergabung?->format('d/m/Y'),
         ]);
 
-        return $this->xlsxResponse('laporan_anggota', 'Data Anggota', $header, $data);
+        $summary = [
+            'Total Anggota'          => $rows->count() . ' Orang',
+            'Anggota Aktif'          => $rows->where('status_anggota', 'aktif')->count() . ' Orang',
+            'Anggota Pasif / Alumni' => $rows->where('status_anggota', 'pasif')->count() . ' Orang',
+            'Total Pengurus BPH'     => $rows->where('jabatan', '!=', 'Anggota')->count() . ' Orang',
+        ];
+
+        return $this->xlsxResponse('laporan_anggota', 'Data Anggota', $header, $data, $summary);
     }
 
     private function exportKegiatan(): StreamedResponse
@@ -53,7 +60,14 @@ class LaporanController extends Controller
             $r->lokasi, $r->status, $r->progres, $r->absensi_count,
         ]);
 
-        return $this->xlsxResponse('laporan_kegiatan', 'Data Kegiatan', $header, $data);
+        $summary = [
+            'Total Kegiatan'     => $rows->count() . ' Kegiatan',
+            'Status Terjadwal'   => $rows->where('status', 'terjadwal')->count() . ' Kegiatan',
+            'Status Berlangsung' => $rows->where('status', 'berlangsung')->count() . ' Kegiatan',
+            'Status Selesai'     => $rows->where('status', 'selesai')->count() . ' Kegiatan',
+        ];
+
+        return $this->xlsxResponse('laporan_kegiatan', 'Data Kegiatan', $header, $data, $summary);
     }
 
     private function exportKeuangan(): StreamedResponse
@@ -66,7 +80,17 @@ class LaporanController extends Controller
             $r->kategori, $r->nominal, $r->kegiatan?->nama_kegiatan ?? '-', $r->keterangan,
         ]);
 
-        return $this->xlsxResponse('laporan_keuangan', 'Data Keuangan', $header, $data);
+        $pemasukan = $rows->where('jenis_transaksi', 'pemasukan')->sum('nominal');
+        $pengeluaran = $rows->where('jenis_transaksi', 'pengeluaran')->sum('nominal');
+
+        $summary = [
+            'Total Transaksi'   => $rows->count() . ' Catatan',
+            'Total Pemasukan'   => 'Rp ' . number_format($pemasukan, 0, ',', '.'),
+            'Total Pengeluaran' => 'Rp ' . number_format($pengeluaran, 0, ',', '.'),
+            'Saldo Kas Bersih'  => 'Rp ' . number_format($pemasukan - $pengeluaran, 0, ',', '.'),
+        ];
+
+        return $this->xlsxResponse('laporan_keuangan', 'Data Keuangan', $header, $data, $summary);
     }
 
     private function exportAbsensi(): StreamedResponse
@@ -80,10 +104,18 @@ class LaporanController extends Controller
             $r->status_hadir, $r->waktu_absen,
         ]);
 
-        return $this->xlsxResponse('laporan_absensi', 'Data Absensi', $header, $data);
+        $summary = [
+            'Total Kehadiran' => $rows->count() . ' Catatan',
+            'Hadir'           => $rows->where('status_hadir', 'hadir')->count() . ' Orang',
+            'Sakit'           => $rows->where('status_hadir', 'sakit')->count() . ' Orang',
+            'Izin'            => $rows->where('status_hadir', 'izin')->count() . ' Orang',
+            'Tidak Hadir/Alpa'=> $rows->where('status_hadir', 'tidak hadir')->count() . ' Orang',
+        ];
+
+        return $this->xlsxResponse('laporan_absensi', 'Data Absensi', $header, $data, $summary);
     }
 
-    private function xlsxResponse(string $filename, string $sheetTitle, array $header, $data): StreamedResponse
+    private function xlsxResponse(string $filename, string $sheetTitle, array $header, $data, array $summary = []): StreamedResponse
     {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -106,6 +138,27 @@ class LaporanController extends Controller
         foreach ($data as $item) {
             $sheet->fromArray(array_values((array) $item), null, "A{$row}");
             $row++;
+        }
+
+        // Tampilkan summary block jika ada
+        if (!empty($summary)) {
+            $row += 2;
+            $sheet->setCellValue("A{$row}", 'RINGKASAN REKAPITULASI');
+            $sheet->mergeCells("A{$row}:C{$row}");
+            $sheet->getStyle("A{$row}:C{$row}")->applyFromArray([
+                'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+                'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF0EA5E9']], // sky-500
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+            ]);
+            $row++;
+
+            foreach ($summary as $label => $val) {
+                $sheet->setCellValue("A{$row}", $label);
+                $sheet->setCellValue("B{$row}", $val);
+                $sheet->mergeCells("B{$row}:C{$row}");
+                $sheet->getStyle("A{$row}")->getFont()->setBold(true);
+                $row++;
+            }
         }
 
         // Auto width semua kolom

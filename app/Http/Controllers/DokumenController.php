@@ -14,7 +14,12 @@ class DokumenController extends Controller
      */
     public function index(Request $request)
     {
-        $kegiatans = Kegiatan::orderByDesc('tanggal')->get();
+        $status = $request->status ?? $request->status_kegiatan;
+        $kegiatans = Kegiatan::query()
+            ->when($request->search, fn($q, $s) => $q->whereRaw('LOWER(nama_kegiatan) LIKE ?', ["%" . strtolower($s) . "%"]))
+            ->when($status, fn($q, $s) => $q->where('status', $s))
+            ->orderByDesc('tanggal')
+            ->get();
 
         return view('dokumen.index', compact('kegiatans'));
     }

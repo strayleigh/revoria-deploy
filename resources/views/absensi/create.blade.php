@@ -25,7 +25,7 @@
                         <select name="kode_kegiatan" class="form-select" required>
                             <option value="">Pilih Kegiatan</option>
                             @foreach($kegiatans as $k)
-                                <option value="{{ $k->kode_kegiatan }}" {{ old('kode_kegiatan') == $k->kode_kegiatan ? 'selected' : '' }}>
+                                <option value="{{ $k->kode_kegiatan }}" {{ old('kode_kegiatan', request('kode_kegiatan')) == $k->kode_kegiatan ? 'selected' : '' }}>
                                     {{ $k->nama_kegiatan }}
                                 </option>
                             @endforeach

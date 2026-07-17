@@ -15,10 +15,21 @@ class DivisiController extends Controller implements HasMiddleware
             new Middleware(function ($request, $next) {
                 $user = auth()->user();
                 $currentUserJabatan = strtolower($user->anggota?->jabatan ?? '');
-                $isAuthorized = in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris'], true) || $user->name === 'admin';
+                
+                // Semua pengurus (BPH) dan admin diizinkan untuk melihat/mengakses index
+                $isAuthorized = $user->role === 'pengurus' || $user->name === 'admin';
 
                 if (!$isAuthorized) {
                     abort(403, 'Anda tidak memiliki hak akses untuk mengelola divisi.');
+                }
+
+                // Aksi tulis (tambah, edit, hapus) dibatasi ketat hanya untuk Admin dan Ketua
+                $routeAction = $request->route()->getActionMethod();
+                if (in_array($routeAction, ['store', 'update', 'destroy'], true)) {
+                    $canCRUD = ($currentUserJabatan === 'ketua' || $user->name === 'admin');
+                    if (!$canCRUD) {
+                        abort(403, 'Hanya Admin dan Ketua yang dapat menambah, mengedit, atau menghapus divisi.');
+                    }
                 }
 
                 return $next($request);

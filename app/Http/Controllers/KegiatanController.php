@@ -10,7 +10,7 @@ class KegiatanController extends Controller
     public function index(Request $request)
     {
         $kegiatans = Kegiatan::query()
-            ->when($request->search, fn($q, $s) => $q->where('nama_kegiatan', 'like', "%$s%"))
+            ->when($request->search, fn($q, $s) => $q->whereRaw('LOWER(nama_kegiatan) LIKE ?', ["%" . strtolower($s) . "%"]))
             ->when($request->status, fn($q, $s) => $q->where('status', $s))
             ->orderByDesc('tanggal')
             ->paginate(12)

@@ -49,6 +49,7 @@ Route::middleware(['auth', 'role:pengurus'])->group(function () {
     Route::resource('keuangan', KeuanganController::class)->parameters(['keuangan' => 'keuangan'])->except('show');
     Route::get('/reports', [LaporanController::class, 'index'])->name('reports.index');
     Route::get('/reports/export/{jenis}', [LaporanController::class, 'export'])->name('reports.export');
+    Route::get('/absensi/kegiatan/{kodeKegiatan}', [AbsensiController::class, 'getAbsensiByKegiatan'])->name('absensi.kegiatan');
 });
 
 require __DIR__.'/auth.php';
