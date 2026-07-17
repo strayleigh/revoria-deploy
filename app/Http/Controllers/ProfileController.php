@@ -17,7 +17,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        $anggotas = $request->user()->role === 'anggota'
+        $anggotas = !in_array($request->user()->role, ['pengurus'], true)
             ? Anggota::whereDoesntHave('user', fn($q) => $q->where('id', '!=', $request->user()->id))
                 ->orWhere('id_anggota', $request->user()->anggota_id)
                 ->orderBy('nama')->get()
@@ -30,7 +30,16 @@ class ProfileController extends Controller
     {
         $request->validate(['anggota_id' => 'nullable|exists:anggota,id_anggota']);
 
-        $request->user()->update(['anggota_id' => $request->anggota_id ?: null]);
+        $updateData = ['anggota_id' => $request->anggota_id ?: null];
+
+        if ($request->anggota_id) {
+            $anggota = Anggota::find($request->anggota_id);
+            if ($anggota && in_array(strtolower($anggota->jabatan), ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'], true)) {
+                $updateData['role'] = 'pengurus';
+            }
+        }
+
+        $request->user()->update($updateData);
 
         return Redirect::route('profile.edit')->with('status', 'anggota-linked');
     }

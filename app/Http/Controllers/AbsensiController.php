@@ -10,24 +10,36 @@ class AbsensiController extends Controller
 {
     public function index(Request $request)
     {
-        $absensis = Absensi::with(['anggota', 'kegiatan'])
-            ->when($request->search, fn($q, $s) => $q->whereHas('anggota', fn($q) => $q->where('nama', 'like', "%$s%")))
-            ->when($request->kegiatan_id, fn($q, $k) => $q->where('kode_kegiatan', $k))
-            ->when($request->tanggal, fn($q, $t) => $q->whereDate('tanggal_absensi', $t))
-            ->orderByDesc('tanggal_absensi')
-            ->paginate(15)
-            ->withQueryString();
+        // Daftar kegiatan untuk card grid (tampilan baru mirip kartar)
+        $kegiatans = Kegiatan::when(
+            $request->status_kegiatan,
+            fn($q, $s) => $q->where('status', $s)
+        )->orderByDesc('tanggal')->get();
 
-        $kegiatans = Kegiatan::orderByDesc('tanggal')->get();
+        // Ringkasan absensi milik user yang login
+        $anggota        = auth()->user()?->anggota;
+        $hadirCount     = 0;
+        $tidakHadirCount = 0;
+        $totalKegiatan  = $kegiatans->count();
 
-        return view('absensi.index', compact('absensis', 'kegiatans'));
+        if ($anggota) {
+            $hadirCount      = Absensi::where('id_anggota', $anggota->id_anggota)
+                                       ->where('status_hadir', 'hadir')
+                                       ->count();
+            $tidakHadirCount = Absensi::where('id_anggota', $anggota->id_anggota)
+                                       ->whereIn('status_hadir', ['tidak hadir', 'alpa'])
+                                       ->count();
+        }
+
+        return view('absensi.index', compact('kegiatans', 'hadirCount', 'tidakHadirCount', 'totalKegiatan'));
     }
 
     public function create()
     {
         $kegiatans = Kegiatan::orderByDesc('tanggal')->get();
+        $anggota = auth()->user()->anggota;
 
-        return view('absensi.create', compact('kegiatans'));
+        return view('absensi.create', compact('kegiatans', 'anggota'));
     }
 
     public function store(Request $request)
@@ -41,7 +53,10 @@ class AbsensiController extends Controller
 
         $anggota = auth()->user()->anggota;
 
-        abort_if(!$anggota, 403, 'Akun Anda belum terhubung ke data anggota.');
+        if (!$anggota) {
+            return redirect()->route('profile.edit')
+                ->with('error', 'Akun Anda belum terhubung ke data anggota. Silakan pilih nama Anda di halaman profil terlebih dahulu.');
+        }
 
         Absensi::create([
             'id_anggota'      => $anggota->id_anggota,

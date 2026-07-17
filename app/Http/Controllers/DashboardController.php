@@ -19,11 +19,17 @@ class DashboardController extends Controller
 
         $saldo = TransaksiKeuangan::selectRaw("COALESCE(SUM(CASE WHEN jenis_transaksi='pemasukan' THEN nominal WHEN jenis_transaksi='pengeluaran' THEN -nominal ELSE 0 END),0) as saldo")->value('saldo');
 
-        $upcoming = Kegiatan::whereDate('tanggal', '>=', $today)
+        $upcoming = Kegiatan::whereDate('tanggal', '>', $today)
             ->orderBy('tanggal')
             ->limit(5)
             ->get();
 
-        return view('dashboard.index', compact('anggotaCount', 'kegiatanCount', 'absensiToday', 'saldo', 'upcoming'));
+        $todayActivities = Kegiatan::whereDate('tanggal', $today)
+            ->orWhere('status', 'berlangsung')
+            ->orderBy('tanggal')
+            ->limit(5)
+            ->get();
+
+        return view('dashboard.index', compact('anggotaCount', 'kegiatanCount', 'absensiToday', 'saldo', 'upcoming', 'todayActivities'));
     }
 }

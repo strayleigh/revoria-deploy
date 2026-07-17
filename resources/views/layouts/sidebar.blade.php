@@ -8,6 +8,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
 </head>
 <body>
@@ -31,22 +32,22 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('activities*') ? 'active' : '' }}" href="/activities">
+                        <a class="nav-link {{ request()->routeIs('kegiatan.*') ? 'active' : '' }}" href="{{ route('kegiatan.index') }}">
                             <i class="bi bi-calendar-event"></i> Kegiatan
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('attendance*') ? 'active' : '' }}" href="/attendance">
+                        <a class="nav-link {{ request()->routeIs('absensi.*') ? 'active' : '' }}" href="{{ route('absensi.index') }}">
                             <i class="bi bi-check2-square"></i> Absensi
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('documents*') ? 'active' : '' }}" href="/documents">
+                        <a class="nav-link {{ request()->routeIs('dokumen.*') ? 'active' : '' }}" href="{{ route('dokumen.index') }}">
                             <i class="bi bi-folder"></i> Dokumen
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('finance*') ? 'active' : '' }}" href="/finance">
+                        <a class="nav-link {{ request()->routeIs('keuangan.*') ? 'active' : '' }}" href="{{ route('keuangan.index') }}">
                             <i class="bi bi-wallet2"></i> Keuangan
                         </a>
                     </li>

@@ -64,7 +64,7 @@
             </div>
         </div>
 
-        @if(auth()->user()->role === 'anggota')
+        @if(!in_array(auth()->user()->role, ['pengurus']))
         <!-- Hubungkan ke Data Anggota -->
         <div class="col-lg-6">
             <div class="dashboard-card">

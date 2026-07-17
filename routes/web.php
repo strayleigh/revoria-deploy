@@ -24,9 +24,20 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     // Kegiatan: semua bisa lihat, hanya pengurus bisa CRUD
     Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.index');
-    Route::get('/kegiatan/{kegiatan}', [KegiatanController::class, 'show'])->name('kegiatan.show');
-    // Dokumen: semua bisa akses
-    Route::resource('dokumen', DokumenController::class)->parameters(['dokumen' => 'dokumen'])->except('show');
+    Route::get('/kegiatan/{kegiatan}', [KegiatanController::class, 'show'])
+        ->name('kegiatan.show')
+        ->whereNumber('kegiatan');
+    // Dokumen folder routes — harus SEBELUM resource agar tidak bentrok
+    Route::get('/dokumen/folder/{folder}/detail', [DokumenController::class, 'folderDetail'])->name('dokumen.folder-detail');
+    Route::patch('/dokumen/folder/{folder}', [DokumenController::class, 'folderUpdate'])->name('dokumen.folder.update');
+    Route::delete('/dokumen/folder/{folder}', [DokumenController::class, 'folderDestroy'])->name('dokumen.folder.destroy');
+    Route::get('/dokumen/{kodeKegiatan}/folder', [DokumenController::class, 'folder'])->name('dokumen.folder');
+    Route::post('/dokumen/{kodeKegiatan}/folder', [DokumenController::class, 'folderStore'])->name('dokumen.folder.store');
+    // Dokumen resource — {dokumen} dibatasi hanya angka agar tidak bentrok dengan /folder/*
+    Route::resource('dokumen', DokumenController::class)
+        ->parameters(['dokumen' => 'dokumen'])
+        ->except('show')
+        ->where(['dokumen' => '[0-9]+']);
 });
 
 // Hanya pengurus

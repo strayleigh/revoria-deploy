@@ -10,10 +10,15 @@
                         <ul class="mb-0 ps-3">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
                     </div>
                 @endif
+                @if(session('error'))
+                    <div class="alert alert-warning rounded-3">
+                        {{ session('error') }} <a href="{{ route('profile.edit') }}">Buka profil</a>.
+                    </div>
+                @endif
                 <div class="row g-3">
                     <div class="col-12">
                         <label class="form-label fw-semibold">Anggota</label>
-                        <input type="text" class="form-control" value="{{ auth()->user()->anggota?->nama ?? auth()->user()->name }}" disabled>
+                        <input type="text" class="form-control" value="{{ $anggota?->nama ?? 'Belum terhubung ke data anggota' }}" disabled>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Kegiatan <span class="text-danger">*</span></label>
@@ -44,6 +49,11 @@
                         </select>
                     </div>
                 </div>
+                @unless($anggota)
+                    <div class="alert alert-warning rounded-3">
+                        Absensi hanya bisa disimpan setelah akun Anda terhubung ke data anggota. Silakan buka <a href="{{ route('profile.edit') }}">halaman profil</a> dan pilih nama anggota Anda.
+                    </div>
+                @endunless
                 <div class="mt-4 d-flex gap-2">
                     <button type="submit" class="btn btn-primary px-4">Simpan</button>
                     <a href="{{ route('absensi.index') }}" class="btn btn-outline-secondary px-4">Batal</a>

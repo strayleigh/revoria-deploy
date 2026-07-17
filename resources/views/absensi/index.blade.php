@@ -1,5 +1,8 @@
 <x-sidebar title="Absensi">
-    <h2 class="mb-4 fw-bold">Absensi</h2>
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Daftar Kehadiran</h2>
+    </div>
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show rounded-4">
@@ -7,111 +10,171 @@
         </div>
     @endif
 
-    <div class="card shadow-sm border-0 rounded-4 mb-4">
-        <div class="card-body">
-            <form action="{{ route('absensi.index') }}" method="GET">
-                <div class="row g-3 align-items-center">
-                    <div class="col-lg">
-                        <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                            <input type="text" name="search" class="form-control" placeholder="Cari nama anggota" value="{{ request('search') }}">
+    <!-- ================= RINGKASAN ================= -->
+    <div class="row g-3 mb-4">
+        <div class="col">
+            <div class="summary-mini-card">
+                <div class="icon-mini bg-success-subtle text-success"><i class="bi bi-people"></i></div>
+                <h4 class="fw-bold mb-0">{{ $totalKegiatan ?? $kegiatans->count() }}</h4>
+                <small class="text-muted">Total Kegiatan</small>
+            </div>
+        </div>
+        <div class="col">
+            <div class="summary-mini-card">
+                <div class="icon-mini bg-success-subtle text-success"><i class="bi bi-check-circle"></i></div>
+                <h4 class="fw-bold mb-0">{{ $hadirCount ?? 0 }}</h4>
+                <small class="text-muted">Kehadiran Saya</small>
+            </div>
+        </div>
+        <div class="col">
+            <div class="summary-mini-card">
+                <div class="icon-mini bg-danger-subtle text-danger"><i class="bi bi-x-circle"></i></div>
+                <h4 class="fw-bold mb-0">{{ $tidakHadirCount ?? 0 }}</h4>
+                <small class="text-muted">Tidak Hadir</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= LIST KEGIATAN (Card Grid) ================= -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Absensi per Kegiatan</h5>
+        <div class="d-flex gap-2 align-items-center">
+            <form action="{{ route('absensi.index') }}" method="GET" class="d-flex gap-2">
+                <select name="status_kegiatan" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    <option value="">Semua Status</option>
+                    <option value="berlangsung" {{ request('status_kegiatan') == 'berlangsung' ? 'selected' : '' }}>Berlangsung</option>
+                    <option value="selesai"     {{ request('status_kegiatan') == 'selesai'     ? 'selected' : '' }}>Selesai</option>
+                </select>
+            </form>
+            @if(auth()->user()?->isKetua())
+                <a href="{{ route('absensi.create') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i> Input Absensi
+                </a>
+            @endif
+        </div>
+    </div>
+
+    @php
+        $iconMap = [
+            'berlangsung' => ['icon' => 'bi-people',         'bg' => 'bg-success-subtle', 'text' => 'text-success'],
+            'terjadwal'   => ['icon' => 'bi-calendar2-event','bg' => 'bg-primary-subtle', 'text' => 'text-primary'],
+            'selesai'     => ['icon' => 'bi-check2-circle',  'bg' => 'bg-secondary-subtle','text'=> 'text-secondary'],
+        ];
+    @endphp
+
+    <div class="row g-4">
+        @forelse($kegiatans as $kegiatan)
+            @php
+                $map = $iconMap[$kegiatan->status] ?? ['icon' => 'bi-calendar-event', 'bg' => 'bg-info-subtle', 'text' => 'text-info'];
+            @endphp
+            <div class="col-lg-4">
+                <div class="card kegiatan-card shadow-sm border-0 h-100"
+                     role="button"
+                     data-bs-toggle="modal"
+                     data-bs-target="#sesiAbsensiModal"
+                     onclick="bukaSesiAbsensi(this)"
+                     data-id="{{ $kegiatan->kode_kegiatan }}"
+                     data-nama="{{ $kegiatan->nama_kegiatan }}">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="icon-kegiatan {{ $map['bg'] }} {{ $map['text'] }}">
+                                <i class="bi {{ $map['icon'] }}"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0">{{ $kegiatan->nama_kegiatan }}</h6>
+                                <small class="text-muted">
+                                    {{ $kegiatan->tanggal?->format('d M Y') }}
+                                    @if($kegiatan->lokasi) &bull; {{ $kegiatan->lokasi }} @endif
+                                </small>
+                            </div>
+                        </div>
+                        @if($kegiatan->deskripsi)
+                            <p class="text-muted small mb-0">{{ Str::limit($kegiatan->deskripsi, 90) }}</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="bi bi-check2-square fs-1 d-block mb-2"></i>
+                Belum ada kegiatan untuk ditampilkan.
+            </div>
+        @endforelse
+    </div>
+
+    <!-- ================= MODAL SESI ABSENSI ================= -->
+    <div class="modal fade" id="sesiAbsensiModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="sesiModalTitle">Sesi Absensi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">Berikut daftar rekap absensi untuk kegiatan ini.</p>
+                    <div id="listSesiAbsensi">
+                        <div class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>
+                            Memuat data...
                         </div>
                     </div>
-                    <div class="col-lg-auto">
-                        <select name="kegiatan_id" class="form-select">
-                            <option value="">Semua Kegiatan</option>
-                            @foreach($kegiatans as $k)
-                                <option value="{{ $k->kode_kegiatan }}" {{ request('kegiatan_id') == $k->kode_kegiatan ? 'selected' : '' }}>
-                                    {{ $k->nama_kegiatan }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-lg-auto">
-                        <input type="date" name="tanggal" class="form-control" value="{{ request('tanggal') }}" style="border-radius:12px;">
-                    </div>
-                    <div class="col-lg-auto d-flex gap-2">
-                        <button type="submit" class="btn btn-outline-secondary px-3"><i class="bi bi-search"></i></button>
-                        <a href="{{ route('absensi.index') }}" class="btn btn-outline-secondary px-3"><i class="bi bi-x-lg"></i></a>
-                        <a href="{{ route('absensi.create') }}" class="btn btn-primary px-4">
+                    <hr class="my-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="fw-bold mb-1">Input Absensi</h6>
+                            <small class="text-muted">Tambah data kehadiran untuk kegiatan ini.</small>
+                        </div>
+                        <a id="btnTambahAbsensi" href="{{ route('absensi.create') }}" class="btn btn-outline-primary">
                             <i class="bi bi-plus-circle"></i> Input Absensi
                         </a>
                     </div>
                 </div>
-            </form>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow rounded-4 overflow-hidden">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0 text-center">
-                <thead class="table-light">
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Anggota</th>
-                        <th>Kegiatan</th>
-                        <th>Tanggal</th>
-                        <th>Waktu</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($absensis as $absensi)
-                        @php
-                            $badgeClass = match($absensi->status_hadir) {
-                                'hadir'       => 'bg-success-subtle text-success',
-                                'izin'        => 'bg-warning-subtle text-warning',
-                                'sakit'       => 'bg-info-subtle text-info',
-                                default       => 'bg-danger-subtle text-danger',
-                            };
-                        @endphp
-                        <tr>
-                            <td>{{ $loop->iteration + ($absensis->currentPage() - 1) * $absensis->perPage() }}</td>
-                            <td class="text-start">{{ $absensi->anggota?->nama ?? '-' }}</td>
-                            <td class="text-start">{{ $absensi->kegiatan?->nama_kegiatan ?? '-' }}</td>
-                            <td>{{ $absensi->tanggal_absensi?->format('d M Y') }}</td>
-                            <td>{{ $absensi->waktu_absen ?? '-' }}</td>
-                            <td><span class="badge {{ $badgeClass }}">{{ ucfirst($absensi->status_hadir) }}</span></td>
-                            <td>
-                                <a href="{{ route('absensi.edit', $absensi) }}" class="btn btn-outline-warning btn-sm">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form action="{{ route('absensi.destroy', $absensi) }}" method="POST" class="d-inline">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Hapus data ini?')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="py-5 text-muted">
-                                <i class="bi bi-check2-square fs-1 d-block mb-2"></i>
-                                Belum ada data absensi.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        @if($absensis->hasPages())
-            <div class="card-footer bg-white">
-                <nav><ul class="pagination justify-content-end mb-0">
-                    <li class="page-item {{ $absensis->onFirstPage() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $absensis->previousPageUrl() }}">&laquo;</a>
-                    </li>
-                    @foreach($absensis->getUrlRange(1, $absensis->lastPage()) as $page => $url)
-                        <li class="page-item {{ $page == $absensis->currentPage() ? 'active' : '' }}">
-                            <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                        </li>
-                    @endforeach
-                    <li class="page-item {{ !$absensis->hasMorePages() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $absensis->nextPageUrl() }}">&raquo;</a>
-                    </li>
-                </ul></nav>
-            </div>
-        @endif
-    </div>
+    <script>
+        let kegiatanAktifId = '';
+
+        function bukaSesiAbsensi(card) {
+            const nama = card.dataset.nama;
+            const id   = card.dataset.id;
+            kegiatanAktifId = id;
+
+            document.getElementById('sesiModalTitle').innerText = 'Sesi Absensi – ' + nama;
+
+            // Update link ke input absensi dengan filter kegiatan
+            const btnInput = document.getElementById('btnTambahAbsensi');
+            btnInput.href = '{{ route('absensi.create') }}?kegiatan_id=' + id;
+
+            // Render ringkasan sederhana – data real bisa di-fetch dari server
+            const box = document.getElementById('listSesiAbsensi');
+            box.innerHTML = `
+                <div class="sesi-block mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <h6 class="fw-semibold mb-1">${nama}</h6>
+                            <small class="text-muted">Klik "Input Absensi" untuk menambah atau mengelola data kehadiran kegiatan ini.</small>
+                        </div>
+                    </div>
+                    <div class="status-card status-belum">
+                        <div class="d-flex align-items-center gap-3 flex-grow-1">
+                            <div class="status-icon bg-primary text-white"><i class="bi bi-calendar2-check"></i></div>
+                            <div>
+                                <div class="fw-bold text-primary">Data Absensi Kegiatan</div>
+                                <small class="text-muted">Lihat riwayat absensi di halaman daftar absensi.</small>
+                            </div>
+                        </div>
+                        <a href="{{ route('absensi.index') }}?kegiatan_id=${id}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-list-check"></i> Lihat Absensi
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+
 </x-sidebar>
