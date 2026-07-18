@@ -35,19 +35,10 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
-# Buat .env dari .env.example jika belum ada
-RUN cp -n .env.example .env || true
 
 # Install Composer dependencies (tanpa dev)
 RUN composer install --no-dev --no-interaction --optimize-autoloader --prefer-dist
 
-# Generate APP_KEY jika belum ada di environment
-RUN php artisan key:generate --force
-
-# Cache route dan config untuk production
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
@@ -56,4 +47,5 @@ RUN chown -R www-data:www-data /var/www/html \
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+# Jalankan dengan env Railway yang sudah ter-inject
+CMD ["/bin/sh", "-c", "php artisan config:cache && php artisan route:cache && php artisan view:cache && exec apache2-foreground"]
