@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
+    nodejs \
+    npm \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql bcmath zip gd opcache \
     && rm -rf /var/lib/apt/lists/*
@@ -41,6 +43,9 @@ COPY . .
 # Install Composer dependencies (tanpa dev)
 RUN composer install --no-dev --no-interaction --optimize-autoloader --prefer-dist
 
+# Build Vite assets
+RUN npm install && npm run build
+
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
@@ -55,6 +60,7 @@ CMD ["/bin/sh", "-c", \
            /etc/apache2/mods-enabled/mpm_event.conf \
            /etc/apache2/mods-enabled/mpm_worker.load \
            /etc/apache2/mods-enabled/mpm_worker.conf && \
+     php artisan migrate --force && \
      php artisan config:cache && \
      php artisan route:cache && \
      php artisan view:cache && \
