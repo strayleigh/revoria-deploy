@@ -1,4 +1,4 @@
-FROM php:8.4-apache
+FROM php:8.3-apache
 
 # Install system packages & PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -43,4 +43,4 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+CMD ["/bin/sh", "-c", "a2dismod mpm_event mpm_worker || true && exec apache2-foreground"]
