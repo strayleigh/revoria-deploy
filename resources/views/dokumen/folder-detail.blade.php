@@ -37,10 +37,12 @@
                                 </small>
                             </div>
                         </div>
+                        @if(auth()->user()->role === 'pengurus' || auth()->user()->name === 'admin')
                         <button class="btn btn-outline-primary btn-sm"
                                 data-bs-toggle="modal" data-bs-target="#editFolderModal">
                             <i class="bi bi-pencil"></i> Edit Folder
                         </button>
+                        @endif
                     </div>
 
                     <!-- Info Google Drive -->

@@ -19,7 +19,7 @@ class MemberController extends Controller implements HasMiddleware
             new Middleware(function ($request, $next) {
                 $user = auth()->user();
                 $currentUserJabatan = strtolower($user->anggota?->jabatan ?? '');
-                $isReadAuthorized = in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris', 'bendahara'], true) || $user->name === 'admin';
+                $isReadAuthorized = in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris', 'bendahara'], true) || $user->name === 'admin' || $user->role === 'pembina';
 
                 if (!$isReadAuthorized) {
                     abort(403, 'Anda tidak memiliki hak akses untuk melihat data anggota.');
@@ -48,12 +48,15 @@ class MemberController extends Controller implements HasMiddleware
         $anggotas = Anggota::with('divisi')
             ->when($request->search, fn($q, $s) => $q->where('nama', 'like', "%$s%")->orWhere('jabatan', 'like', "%$s%"))
             ->when($request->jabatan, fn($q, $j) => $q->where('jabatan', $j))
+            ->when($request->divisi_id, fn($q, $d) => $q->where('divisi_id', $d))
             ->when($request->status, fn($q, $s) => $q->where('status_anggota', $s))
             ->orderBy('nama')
             ->paginate(15)
             ->withQueryString();
 
-        return view('members.index', compact('anggotas'));
+        $divisis = Divisi::orderBy('nama_divisi')->get();
+
+        return view('members.index', compact('anggotas', 'divisis'));
     }
 
     public function create()

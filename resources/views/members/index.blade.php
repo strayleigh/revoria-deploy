@@ -31,12 +31,23 @@
                     </div>
                     <div class="col-lg-auto">
                         <select name="jabatan" class="form-select" onchange="this.form.submit()">
+                            <option value="">Semua Jabatan</option>
+                            <option value="Ketua"         {{ request('jabatan') == 'Ketua'         ? 'selected' : '' }}>Ketua</option>
+                            <option value="Wakil Ketua"   {{ request('jabatan') == 'Wakil Ketua'   ? 'selected' : '' }}>Wakil Ketua</option>
+                            <option value="Sekretaris"    {{ request('jabatan') == 'Sekretaris'    ? 'selected' : '' }}>Sekretaris</option>
+                            <option value="Bendahara"     {{ request('jabatan') == 'Bendahara'     ? 'selected' : '' }}>Bendahara</option>
+                            <option value="Kepala Divisi" {{ request('jabatan') == 'Kepala Divisi' ? 'selected' : '' }}>Kepala Divisi</option>
+                            <option value="Anggota"       {{ request('jabatan') == 'Anggota'       ? 'selected' : '' }}>Anggota</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-auto">
+                        <select name="divisi_id" class="form-select" onchange="this.form.submit()">
                             <option value="">Semua Divisi</option>
-                            <option value="Ketua"        {{ request('jabatan') == 'Ketua'        ? 'selected' : '' }}>Ketua</option>
-                            <option value="Wakil Ketua"  {{ request('jabatan') == 'Wakil Ketua'  ? 'selected' : '' }}>Wakil Ketua</option>
-                            <option value="Sekretaris"   {{ request('jabatan') == 'Sekretaris'   ? 'selected' : '' }}>Sekretaris</option>
-                            <option value="Bendahara"    {{ request('jabatan') == 'Bendahara'    ? 'selected' : '' }}>Bendahara</option>
-                            <option value="Anggota"      {{ request('jabatan') == 'Anggota'      ? 'selected' : '' }}>Anggota</option>
+                            @foreach($divisis as $divisi)
+                                <option value="{{ $divisi->id_divisi }}" {{ request('divisi_id') == $divisi->id_divisi ? 'selected' : '' }}>
+                                    {{ $divisi->nama_divisi }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-lg-auto">
@@ -68,7 +79,7 @@
     </div>
 
     {{-- Indikator filter aktif --}}
-    @if(request('search') || request('jabatan') || request('status'))
+    @if(request('search') || request('jabatan') || request('divisi_id') || request('status'))
         <div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
             <small class="text-muted">Filter aktif:</small>
             @if(request('search'))
@@ -78,7 +89,15 @@
             @endif
             @if(request('jabatan'))
                 <span class="badge bg-info-subtle text-info border border-info-subtle">
-                    Divisi: {{ request('jabatan') }}
+                    Jabatan: {{ request('jabatan') }}
+                </span>
+            @endif
+            @if(request('divisi_id'))
+                @php
+                    $filteredDivisi = $divisis->firstWhere('id_divisi', request('divisi_id'));
+                @endphp
+                <span class="badge bg-info-subtle text-info border border-info-subtle">
+                    Divisi: {{ $filteredDivisi?->nama_divisi ?? 'Tanpa Divisi' }}
                 </span>
             @endif
             @if(request('status'))

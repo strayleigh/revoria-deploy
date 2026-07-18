@@ -5,9 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\Folder;
 use App\Models\Kegiatan;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class DokumenController extends Controller
+class DokumenController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(function ($request, $next) {
+                $user = auth()->user();
+                $routeAction = $request->route()->getActionMethod();
+                
+                // Aksi tulis (tambah, edit, hapus) folder/dokumen dibatasi hanya untuk Pengurus & Admin
+                if (in_array($routeAction, ['folderStore', 'folderUpdate', 'folderDestroy', 'store', 'update', 'destroy'], true)) {
+                    if ($user->role !== 'pengurus' && $user->name !== 'admin') {
+                        abort(403, 'Hanya Pengurus dan Admin yang dapat menambah, mengedit, atau menghapus dokumen.');
+                    }
+                }
+                
+                return $next($request);
+            }),
+        ];
+    }
     /**
      * Halaman utama dokumen: tampilkan daftar kegiatan sebagai card grid
      * (mirip kartar dokumen.html).

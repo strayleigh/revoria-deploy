@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\DokumenController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\KeuanganController;
@@ -40,15 +41,24 @@ Route::middleware('auth')->group(function () {
         ->where(['dokumen' => '[0-9]+']);
 });
 
+// Pengurus dan Pembina
+Route::middleware(['auth', 'role:pengurus,pembina'])->group(function () {
+    Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+    Route::get('/members/{member}', [MemberController::class, 'show'])
+        ->name('members.show')
+        ->whereNumber('member');
+    Route::get('/keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
+    Route::get('/reports', [LaporanController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export/{jenis}', [LaporanController::class, 'export'])->name('reports.export');
+});
+
 // Hanya pengurus
 Route::middleware(['auth', 'role:pengurus'])->group(function () {
     Route::patch('/members/{member}/assign', [MemberController::class, 'assignUser'])->name('members.assign');
-    Route::resource('members', MemberController::class);
-    Route::resource('divisi', DivisiController::class);
+    Route::resource('members', MemberController::class)->except(['index', 'show']);
+    Route::resource('divisi', DivisiController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('kegiatan', KegiatanController::class)->except(['index', 'show']);
-    Route::resource('keuangan', KeuanganController::class)->parameters(['keuangan' => 'keuangan'])->except('show');
-    Route::get('/reports', [LaporanController::class, 'index'])->name('reports.index');
-    Route::get('/reports/export/{jenis}', [LaporanController::class, 'export'])->name('reports.export');
+    Route::resource('keuangan', KeuanganController::class)->parameters(['keuangan' => 'keuangan'])->except(['index', 'show']);
     Route::get('/absensi/kegiatan/{kodeKegiatan}', [AbsensiController::class, 'getAbsensiByKegiatan'])->name('absensi.kegiatan');
 });
 

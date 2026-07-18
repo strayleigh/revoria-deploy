@@ -45,7 +45,7 @@
                         <i class="bi bi-house"></i> Dashboard
                     </a>
                 </li>
-                @if(auth()->user()->isKetua())
+                @if(auth()->user()->role === 'pengurus' || auth()->user()->role === 'pembina' || auth()->user()->name === 'admin')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('members.*') ? 'active' : '' }}" href="{{ route('members.index') }}" onclick="window.location.href='{{ route('members.index') }}'; return false;">
                         <i class="bi bi-people"></i> Anggota
@@ -57,17 +57,19 @@
                         <i class="bi bi-calendar-event"></i> Kegiatan
                     </a>
                 </li>
+                @if(auth()->user()->role !== 'pembina')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('absensi.*') ? 'active' : '' }}" href="{{ route('absensi.index') }}" onclick="window.location.href='{{ route('absensi.index') }}'; return false;">
                         <i class="bi bi-check2-square"></i> Absensi
                     </a>
                 </li>
+                @endif
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('dokumen.*') ? 'active' : '' }}" href="{{ route('dokumen.index') }}" onclick="window.location.href='{{ route('dokumen.index') }}'; return false;">
                         <i class="bi bi-folder"></i> Dokumen
                     </a>
                 </li>
-                @if(auth()->user()->isKetua())
+                @if(auth()->user()->role === 'pengurus' || auth()->user()->role === 'pembina' || auth()->user()->name === 'admin')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('keuangan.*') ? 'active' : '' }}" href="{{ route('keuangan.index') }}" onclick="window.location.href='{{ route('keuangan.index') }}'; return false;">
                         <i class="bi bi-wallet2"></i> Keuangan
@@ -125,7 +127,7 @@
                             <i class="bi bi-house"></i> Dashboard
                         </a>
                     </li>
-                    @if(auth()->user()->isKetua())
+                    @if(auth()->user()->role === 'pengurus' || auth()->user()->role === 'pembina' || auth()->user()->name === 'admin')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('members.*') ? 'active' : '' }}" href="{{ route('members.index') }}">
                             <i class="bi bi-people"></i> Anggota
@@ -137,17 +139,19 @@
                             <i class="bi bi-calendar-event"></i> Kegiatan
                         </a>
                     </li>
+                    @if(auth()->user()->role !== 'pembina')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('absensi.*') ? 'active' : '' }}" href="{{ route('absensi.index') }}">
                             <i class="bi bi-check2-square"></i> Absensi
                         </a>
                     </li>
+                    @endif
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('dokumen.*') ? 'active' : '' }}" href="{{ route('dokumen.index') }}">
                             <i class="bi bi-folder"></i> Dokumen
                         </a>
                     </li>
-                    @if(auth()->user()->isKetua())
+                    @if(auth()->user()->role === 'pengurus' || auth()->user()->role === 'pembina' || auth()->user()->name === 'admin')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('keuangan.*') ? 'active' : '' }}" href="{{ route('keuangan.index') }}">
                             <i class="bi bi-wallet2"></i> Keuangan

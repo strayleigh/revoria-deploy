@@ -140,6 +140,10 @@ class LaporanController extends Controller
             $row++;
         }
 
+        // Tambahkan Waktu Export ke summary
+        $exportTime = now()->setTimezone('Asia/Jakarta')->format('d-m-Y H:i:s');
+        $summary['Waktu Export'] = $exportTime . ' WIB';
+
         // Tampilkan summary block jika ada
         if (!empty($summary)) {
             $row += 2;
@@ -167,10 +171,11 @@ class LaporanController extends Controller
         }
 
         $writer = new Xlsx($spreadsheet);
+        $fileTimestamp = now()->setTimezone('Asia/Jakarta')->format('Ymd_His');
 
         return response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
-        }, "{$filename}.xlsx", [
+        }, "{$filename}_{$fileTimestamp}.xlsx", [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }

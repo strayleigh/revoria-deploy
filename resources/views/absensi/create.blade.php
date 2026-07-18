@@ -12,7 +12,10 @@
                 @endif
                 @if(session('error'))
                     <div class="alert alert-warning rounded-3">
-                        {{ session('error') }} <a href="{{ route('profile.edit') }}">Buka profil</a>.
+                        {{ session('error') }}
+                        @if(Illuminate\Support\Str::contains(session('error'), ['profil', 'hubung']))
+                            <a href="{{ route('profile.edit') }}">Buka profil</a>.
+                        @endif
                     </div>
                 @endif
                 <div class="row g-3">

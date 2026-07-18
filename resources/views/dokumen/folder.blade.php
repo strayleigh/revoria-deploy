@@ -23,10 +23,12 @@
                                 Kegiatan: <strong>{{ $kegiatan->nama_kegiatan }}</strong>
                             </small>
                         </div>
+                        @if(auth()->user()->role === 'pengurus' || auth()->user()->name === 'admin')
                         <button class="btn btn-primary"
                                 data-bs-toggle="modal" data-bs-target="#folderBaruModal">
                             <i class="bi bi-folder-plus"></i> Folder Baru
                         </button>
+                        @endif
                     </div>
 
                     @if($folders->isEmpty())
@@ -43,6 +45,7 @@
                                          onclick="window.location.href='{{ route('dokumen.folder-detail', $folder->id_folder) }}'">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <i class="bi bi-folder-fill folder-icon"></i>
+                                            @if(auth()->user()->role === 'pengurus' || auth()->user()->name === 'admin')
                                             <div class="dropdown">
                                                 <button class="btn btn-sm folder-menu-btn"
                                                         data-bs-toggle="dropdown"
@@ -75,6 +78,7 @@
                                                     </li>
                                                 </ul>
                                             </div>
+                                            @endif
                                         </div>
                                         <h5 class="mt-3 fw-semibold">{{ $folder->nama_folder }}</h5>
                                         <small class="text-muted">

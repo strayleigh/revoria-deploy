@@ -245,6 +245,12 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0">
+                    <a id="btnDetailDokumen" href="#" class="btn btn-outline-primary px-3">
+                        <i class="bi bi-folder2-open"></i> Dokumen
+                    </a>
+                    <a id="btnDetailAbsensi" href="#" class="btn btn-outline-success px-3">
+                        <i class="bi bi-calendar2-check"></i> Absensi
+                    </a>
                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
@@ -324,6 +330,7 @@
 
         /* ====== DETAIL ====== */
         function bukaDetailKegiatan(btn) {
+            const id = btn.dataset.id;
             document.getElementById('detailNamaKegiatan').innerText    = btn.dataset.nama;
             document.getElementById('detailStatusKegiatan').innerText  = btn.dataset.status
                 ? btn.dataset.status.charAt(0).toUpperCase() + btn.dataset.status.slice(1)
@@ -336,6 +343,9 @@
             const bar = document.getElementById('detailProgresBar');
             bar.style.width  = progres + '%';
             bar.innerText    = progres + '%';
+
+            document.getElementById('btnDetailDokumen').href = `/dokumen/${id}/folder`;
+            document.getElementById('btnDetailAbsensi').href = `/absensi?search=${encodeURIComponent(btn.dataset.nama)}`;
         }
 
         /* ====== HAPUS ====== */

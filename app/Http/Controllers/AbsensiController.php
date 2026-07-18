@@ -5,9 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\Absensi;
 use App\Models\Kegiatan;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class AbsensiController extends Controller
+class AbsensiController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(function ($request, $next) {
+                if (auth()->user()?->role === 'pembina') {
+                    abort(403, 'Pembina tidak memiliki akses ke halaman absensi.');
+                }
+                return $next($request);
+            }),
+        ];
+    }
     public function index(Request $request)
     {
         // Daftar kegiatan untuk card grid (tampilan baru mirip kartar)
@@ -23,17 +36,17 @@ class AbsensiController extends Controller
         $hadirCount     = 0;
         $tidakHadirCount = 0;
         $totalKegiatan  = $kegiatans->count();
+        $userAbsensiKegiatanIds = [];
 
         if ($anggota) {
-            $hadirCount      = Absensi::where('id_anggota', $anggota->id_anggota)
-                                       ->where('status_hadir', 'hadir')
-                                       ->count();
-            $tidakHadirCount = Absensi::where('id_anggota', $anggota->id_anggota)
-                                       ->whereIn('status_hadir', ['tidak hadir', 'alpa'])
-                                       ->count();
+            $userAbsensiKegiatanIds = Absensi::where('id_anggota', $anggota->id_anggota)
+                                       ->pluck('kode_kegiatan')
+                                       ->toArray();
+            $hadirCount      = count($userAbsensiKegiatanIds);
+            $tidakHadirCount = max(0, $totalKegiatan - $hadirCount);
         }
 
-        return view('absensi.index', compact('kegiatans', 'hadirCount', 'tidakHadirCount', 'totalKegiatan'));
+        return view('absensi.index', compact('kegiatans', 'hadirCount', 'tidakHadirCount', 'totalKegiatan', 'userAbsensiKegiatanIds'));
     }
 
     public function create()
@@ -58,6 +71,17 @@ class AbsensiController extends Controller
         if (!$anggota) {
             return redirect()->route('profile.edit')
                 ->with('error', 'Akun Anda belum terhubung ke data anggota. Silakan pilih nama Anda di halaman profil terlebih dahulu.');
+        }
+
+        // Cek duplikasi absensi untuk kegiatan yang sama
+        $sudahAbsen = Absensi::where('id_anggota', $anggota->id_anggota)
+            ->where('kode_kegiatan', $request->kode_kegiatan)
+            ->exists();
+
+        if ($sudahAbsen) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Anda sudah mengisi absensi untuk kegiatan ini.');
         }
 
         Absensi::create([

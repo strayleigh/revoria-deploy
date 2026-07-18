@@ -13,21 +13,21 @@
     <!-- ================= RINGKASAN ================= -->
     <div class="row g-3 mb-4">
         <div class="col">
-            <div class="summary-mini-card">
+            <div class="summary-mini-card border border-primary shadow-sm" id="card-all" onclick="filterAbsensi('all')" style="cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
                 <div class="icon-mini bg-success-subtle text-success"><i class="bi bi-people"></i></div>
                 <h4 class="fw-bold mb-0">{{ $totalKegiatan ?? $kegiatans->count() }}</h4>
                 <small class="text-muted">Total Kegiatan</small>
             </div>
         </div>
         <div class="col">
-            <div class="summary-mini-card">
+            <div class="summary-mini-card" id="card-hadir" onclick="filterAbsensi('hadir')" style="cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
                 <div class="icon-mini bg-success-subtle text-success"><i class="bi bi-check-circle"></i></div>
                 <h4 class="fw-bold mb-0">{{ $hadirCount ?? 0 }}</h4>
                 <small class="text-muted">Kehadiran Saya</small>
             </div>
         </div>
         <div class="col">
-            <div class="summary-mini-card">
+            <div class="summary-mini-card" id="card-tidak-hadir" onclick="filterAbsensi('tidak-hadir')" style="cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
                 <div class="icon-mini bg-danger-subtle text-danger"><i class="bi bi-x-circle"></i></div>
                 <h4 class="fw-bold mb-0">{{ $tidakHadirCount ?? 0 }}</h4>
                 <small class="text-muted">Tidak Hadir</small>
@@ -87,7 +87,7 @@
             @php
                 $map = $iconMap[$kegiatan->status] ?? ['icon' => 'bi-calendar-event', 'bg' => 'bg-info-subtle', 'text' => 'text-info'];
             @endphp
-            <div class="col-lg-4">
+            <div class="col-lg-4 kegiatan-item" data-has-absensi="{{ in_array($kegiatan->kode_kegiatan, $userAbsensiKegiatanIds ?? []) ? 'true' : 'false' }}">
                 <div class="card kegiatan-card shadow-sm border-0 h-100"
                      role="button"
                      @if(auth()->user()?->isKetua())
@@ -330,6 +330,64 @@
                         </tr>
                     `;
                 });
+        }
+
+        function filterAbsensi(filterType) {
+            // Hapus border active di semua card summary
+            document.querySelectorAll('.summary-mini-card').forEach(card => {
+                card.classList.remove('border', 'border-primary', 'shadow-sm');
+            });
+            
+            // Tambahkan border active ke card yang diklik
+            const selectedCard = document.getElementById('card-' + filterType);
+            if (selectedCard) {
+                selectedCard.classList.add('border', 'border-primary', 'shadow-sm');
+            }
+
+            const items = document.querySelectorAll('.kegiatan-item');
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                const hasAbsensi = item.getAttribute('data-has-absensi') === 'true';
+                if (filterType === 'all') {
+                    item.style.setProperty('display', '', 'important');
+                    visibleCount++;
+                } else if (filterType === 'hadir') {
+                    if (hasAbsensi) {
+                        item.style.setProperty('display', '', 'important');
+                        visibleCount++;
+                    } else {
+                        item.style.setProperty('display', 'none', 'important');
+                    }
+                } else if (filterType === 'tidak-hadir') {
+                    if (!hasAbsensi) {
+                        item.style.setProperty('display', '', 'important');
+                        visibleCount++;
+                    } else {
+                        item.style.setProperty('display', 'none', 'important');
+                    }
+                }
+            });
+
+            // Tampilkan pesan kosong jika tidak ada data yang cocok dengan filter
+            let emptyState = document.getElementById('empty-state-message');
+            if (visibleCount === 0) {
+                if (!emptyState) {
+                    const rowContainer = document.querySelector('.row.g-4');
+                    emptyState = document.createElement('div');
+                    emptyState.id = 'empty-state-message';
+                    emptyState.className = 'col-12 text-center py-5 text-muted';
+                    emptyState.innerHTML = `
+                        <i class="bi bi-info-circle fs-1 d-block mb-2"></i>
+                        Tidak ada kegiatan untuk filter ini.
+                    `;
+                    rowContainer.appendChild(emptyState);
+                } else {
+                    emptyState.style.setProperty('display', '', 'important');
+                }
+            } else if (emptyState) {
+                emptyState.style.setProperty('display', 'none', 'important');
+            }
         }
     </script>
 

@@ -35,10 +35,18 @@
                     <p>{{ $kegiatan->deskripsi ?: '-' }}</p>
                 </div>
             </div>
-            <div class="mt-4 d-flex gap-2">
-                <a href="{{ route('kegiatan.edit', $kegiatan) }}" class="btn btn-warning px-4">
-                    <i class="bi bi-pencil"></i> Edit
+            <div class="mt-4 d-flex gap-2 flex-wrap">
+                <a href="{{ route('dokumen.folder', $kegiatan->kode_kegiatan) }}" class="btn btn-outline-primary px-4">
+                    <i class="bi bi-folder2-open"></i> Dokumen
                 </a>
+                <a href="{{ route('absensi.index') }}?search={{ urlencode($kegiatan->nama_kegiatan) }}" class="btn btn-outline-success px-4">
+                    <i class="bi bi-calendar2-check"></i> Absensi
+                </a>
+                @if(auth()->user()?->isKetua())
+                    <a href="{{ route('kegiatan.edit', $kegiatan) }}" class="btn btn-warning px-4">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                @endif
                 <a href="{{ route('kegiatan.index') }}" class="btn btn-outline-secondary px-4">Kembali</a>
             </div>
         </div>
