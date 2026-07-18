@@ -14,9 +14,11 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_mysql bcmath zip gd opcache \
     && rm -rf /var/lib/apt/lists/*
 
-# Pastikan hanya mpm_prefork yang aktif (sesuai mod_php)
-RUN a2dismod mpm_event || true \
-    && a2dismod mpm_worker || true \
+# Hapus langsung symlink MPM yang konflik, enable prefork + rewrite
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.load \
+        /etc/apache2/mods-enabled/mpm_event.conf \
+        /etc/apache2/mods-enabled/mpm_worker.load \
+        /etc/apache2/mods-enabled/mpm_worker.conf \
     && a2enmod mpm_prefork rewrite headers
 
 # Set document root ke public/
@@ -48,4 +50,12 @@ RUN chown -R www-data:www-data /var/www/html \
 EXPOSE 80
 
 # Jalankan dengan env Railway yang sudah ter-inject
-CMD ["/bin/sh", "-c", "php artisan config:cache && php artisan route:cache && php artisan view:cache && exec apache2-foreground"]
+CMD ["/bin/sh", "-c", \
+    "rm -f /etc/apache2/mods-enabled/mpm_event.load \
+           /etc/apache2/mods-enabled/mpm_event.conf \
+           /etc/apache2/mods-enabled/mpm_worker.load \
+           /etc/apache2/mods-enabled/mpm_worker.conf && \
+     php artisan config:cache && \
+     php artisan route:cache && \
+     php artisan view:cache && \
+     exec apache2-foreground"]
