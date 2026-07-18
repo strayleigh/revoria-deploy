@@ -16,11 +16,19 @@ class DokumenController extends Controller implements HasMiddleware
             new Middleware(function ($request, $next) {
                 $user = auth()->user();
                 $routeAction = $request->route()->getActionMethod();
+                $jabatan = strtolower($user->anggota?->jabatan ?? '');
                 
-                // Aksi tulis (tambah, edit, hapus) folder/dokumen dibatasi hanya untuk Pengurus & Admin
-                if (in_array($routeAction, ['folderStore', 'folderUpdate', 'folderDestroy', 'store', 'update', 'destroy'], true)) {
+                // Aksi tulis folder dibatasi untuk role Pengurus & Admin
+                if (in_array($routeAction, ['folderStore', 'folderUpdate', 'folderDestroy'], true)) {
                     if ($user->role !== 'pengurus' && $user->name !== 'admin') {
-                        abort(403, 'Hanya Pengurus dan Admin yang dapat menambah, mengedit, atau menghapus dokumen.');
+                        abort(403, 'Hanya Pengurus dan Admin yang dapat menambah, mengedit, atau menghapus folder.');
+                    }
+                }
+                
+                // Aksi tulis berkas dokumen dibatasi untuk Sekretaris & Admin
+                if (in_array($routeAction, ['store', 'update', 'destroy'], true)) {
+                    if ($jabatan !== 'sekretaris' && $user->name !== 'admin') {
+                        abort(403, 'Hanya Sekretaris dan Admin yang dapat menambah, mengedit, atau menghapus berkas dokumen.');
                     }
                 }
                 
@@ -35,7 +43,7 @@ class DokumenController extends Controller implements HasMiddleware
     public function index(Request $request)
     {
         $status = $request->status ?? $request->status_kegiatan;
-        $kegiatans = Kegiatan::query()
+        $kegiatans = Kegiatan::with('folder')
             ->when($request->search, fn($q, $s) => $q->whereRaw('LOWER(nama_kegiatan) LIKE ?', ["%" . strtolower($s) . "%"]))
             ->when($status, fn($q, $s) => $q->where('status', $s))
             ->orderByDesc('tanggal')

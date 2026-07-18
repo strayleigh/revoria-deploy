@@ -35,4 +35,9 @@ class Kegiatan extends Model
     {
         return $this->hasMany(Folder::class, 'kode_kegiatan', 'kode_kegiatan');
     }
+
+    public function panitia()
+    {
+        return $this->hasMany(Kepanitiaan::class, 'kode_kegiatan', 'kode_kegiatan');
+    }
 }

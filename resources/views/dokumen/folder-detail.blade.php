@@ -117,24 +117,27 @@
                                 <i class="bi bi-box-arrow-up-right"></i> Buka di Google Drive
                             </a>
                         @endif
-                        <button class="btn btn-outline-warning"
-                                data-bs-toggle="modal" data-bs-target="#editFolderModal">
-                            <i class="bi bi-pencil"></i> Edit Nama & Link Drive
-                        </button>
-                        <button class="btn btn-outline-danger"
-                                data-bs-toggle="modal" data-bs-target="#hapusFolderModal">
-                            <i class="bi bi-trash"></i> Hapus Folder
-                        </button>
+                        @if(auth()->user()->role === 'pengurus' || auth()->user()->name === 'admin')
+                            <button class="btn btn-outline-warning"
+                                    data-bs-toggle="modal" data-bs-target="#editFolderModal">
+                                <i class="bi bi-pencil"></i> Edit Nama & Link Drive
+                            </button>
+                            <button class="btn btn-outline-danger"
+                                    data-bs-toggle="modal" data-bs-target="#hapusFolderModal">
+                                <i class="bi bi-trash"></i> Hapus Folder
+                            </button>
+                        @endif
                     </div>
 
-                    <hr>
-
-                    <h6 class="fw-bold mb-2">Cara Pakai</h6>
-                    <ol class="small text-muted ps-3 mb-0">
-                        <li class="mb-1">Buat folder di Google Drive untuk kegiatan ini.</li>
-                        <li class="mb-1">Salin link folder Google Drive.</li>
-                        <li>Tempel link di sini lewat <strong>Edit Folder</strong>.</li>
-                    </ol>
+                        @if(auth()->user()->role === 'pengurus' || auth()->user()->name === 'admin')
+                            <hr>
+                            <h6 class="fw-bold mb-2">Cara Pakai</h6>
+                            <ol class="small text-muted ps-3 mb-0">
+                                <li class="mb-1">Buat folder di Google Drive untuk kegiatan ini.</li>
+                                <li class="mb-1">Salin link folder Google Drive.</li>
+                                <li>Tempel link di sini lewat <strong>Edit Folder</strong>.</li>
+                            </ol>
+                        @endif
                 </div>
             </div>
         </div>

@@ -61,35 +61,76 @@
         @forelse($kegiatans as $i => $kegiatan)
             @php
                 $map = $iconMap[$kegiatan->status] ?? $iconPool[$i % count($iconPool)];
+                
+                $borderColorClass = match($kegiatan->status) {
+                    'berlangsung' => 'bg-success',
+                    'terjadwal'   => 'bg-warning',
+                    default       => 'bg-secondary',
+                };
+                
+                $badgeStyle = match($kegiatan->status) {
+                    'berlangsung' => 'bg-success-subtle text-success border border-success-subtle',
+                    'terjadwal'   => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
+                    default       => 'bg-secondary-subtle text-secondary border border-secondary-subtle',
+                };
+                
+                $folderCount = $kegiatan->folder->count();
             @endphp
-            <div class="col-lg-4">
-                <div class="card kegiatan-card dokumen-card shadow-sm border-0"
+            <div class="col-lg-4 d-flex">
+                <div class="card kegiatan-card dokumen-card shadow border-0 w-100 h-100 position-relative overflow-hidden"
+                     style="border-radius: 20px;"
                      role="button"
                      onclick="window.location.href='{{ route('dokumen.folder', $kegiatan->kode_kegiatan) }}'">
-                    <div class="card-body d-flex flex-column justify-content-between h-100 p-4">
+                     
+
+                    
+                    <div class="card-body d-flex flex-column p-4 h-100 justify-content-between">
                         <div>
-                            <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="icon-kegiatan {{ $map['bg'] }} {{ $map['text'] }} rounded-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; flex-shrink: 0;">
-                                    <i class="bi {{ $map['icon'] }} fs-5"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1" style="font-size: 15px;">{{ $kegiatan->nama_kegiatan }}</h6>
-                                    <small class="text-muted d-block" style="font-size: 12px;">
-                                        <i class="bi bi-calendar3 me-1"></i>{{ $kegiatan->tanggal?->format('d M Y') }}
-                                        @if($kegiatan->lokasi) &bull; <i class="bi bi-geo-alt-fill me-1 text-danger"></i>{{ $kegiatan->lokasi }} @endif
-                                    </small>
-                                </div>
-                            </div>
-                            <hr class="my-3 opacity-25">
-                            <div style="height: 60px; overflow: hidden;">
-                                @if($kegiatan->deskripsi)
-                                    <p class="text-muted small mb-0" style="line-height: 1.5;">{{ Str::limit($kegiatan->deskripsi, 100) }}</p>
+                            <!-- Header Badges -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                @if($kegiatan->status !== 'terjadwal')
+                                    <span class="badge rounded-pill px-3 py-1.5 fs-7 {{ $badgeStyle }}">{{ ucfirst($kegiatan->status) }}</span>
                                 @else
-                                    <p class="text-muted small mb-0" style="visibility: hidden;">-</p>
+                                    <div></div>
                                 @endif
                             </div>
+
+                            <!-- Title with Icon -->
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <div class="icon-kegiatan {{ $map['bg'] }} {{ $map['text'] }} rounded-4 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; flex-shrink: 0; background-color: rgba(0,0,0,0.025);">
+                                    <i class="bi {{ $map['icon'] }} fs-5"></i>
+                                </div>
+                                <div style="min-width: 0;">
+                                    <h5 class="fw-bold mb-1 text-dark dark:text-white text-truncate" style="font-size: 16px; line-height: 1.4;">{{ $kegiatan->nama_kegiatan }}</h5>
+                                    
+                                    <div class="d-flex flex-column gap-1 mt-2">
+                                        <small class="text-secondary d-flex align-items-center small">
+                                            <i class="bi bi-calendar3 text-primary me-2"></i>
+                                            <span>{{ $kegiatan->tanggal?->format('d M Y') }}</span>
+                                        </small>
+                                        @if($kegiatan->lokasi)
+                                            <small class="text-secondary d-flex align-items-center small text-truncate">
+                                                <i class="bi bi-geo-alt text-primary me-2"></i>
+                                                <span>{{ $kegiatan->lokasi }}</span>
+                                            </small>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-3 opacity-25">
+                            
+                            @if($kegiatan->deskripsi)
+                                <p class="text-muted small mb-0" style="line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    {{ $kegiatan->deskripsi }}
+                                </p>
+                            @else
+                                <p class="text-muted small mb-0 italic" style="line-height: 1.5;">Tidak ada deskripsi kegiatan.</p>
+                            @endif
                         </div>
-                        <div class="mt-3 text-end">
+
+                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                            <span class="text-secondary small fw-semibold"><i class="bi bi-folder me-1"></i> {{ $folderCount }} Folder</span>
                             <span class="text-primary small fw-semibold"><i class="bi bi-folder2-open me-1"></i> Buka Dokumen</span>
                         </div>
                     </div>

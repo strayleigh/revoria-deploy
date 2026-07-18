@@ -32,7 +32,7 @@ class MemberController extends Controller implements HasMiddleware
             new Middleware(function ($request, $next) {
                 $user = auth()->user();
                 $currentUserJabatan = strtolower($user->anggota?->jabatan ?? '');
-                $isWriteAuthorized = in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris'], true) || $user->name === 'admin';
+                $isWriteAuthorized = in_array($currentUserJabatan, ['wakil ketua', 'sekretaris'], true) || $user->name === 'admin';
 
                 if (!$isWriteAuthorized) {
                     abort(403, 'Anda tidak memiliki hak akses untuk mengelola data anggota.');
@@ -45,7 +45,7 @@ class MemberController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $anggotas = Anggota::with('divisi')
+        $anggotas = Anggota::with(['divisi', 'user'])
             ->when($request->search, fn($q, $s) => $q->where('nama', 'like', "%$s%")->orWhere('jabatan', 'like', "%$s%"))
             ->when($request->jabatan, fn($q, $j) => $q->where('jabatan', $j))
             ->when($request->divisi_id, fn($q, $d) => $q->where('divisi_id', $d))
@@ -69,12 +69,10 @@ class MemberController extends Controller implements HasMiddleware
     {
         $request->validate([
             'nama'              => 'required|string|max:255',
-            'no_hp'             => 'required|string|max:20',
             'jabatan'           => 'required|string|max:100',
             'tanggal_bergabung' => 'required|date',
             'status_anggota'    => 'required|in:aktif,tidak aktif',
             'alamat'            => 'required|string',
-            'nik'               => 'nullable|string|max:20',
             'divisi_id'         => 'nullable|exists:divisi,id_divisi',
         ]);
 
@@ -112,8 +110,11 @@ class MemberController extends Controller implements HasMiddleware
             
             // Tentukan role berdasarkan jabatan anggota
             $role = 'anggota';
-            if (in_array(strtolower($member->jabatan), ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'], true)) {
+            $jabatanLower = strtolower($member->jabatan);
+            if (in_array($jabatanLower, ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'], true)) {
                 $role = 'pengurus';
+            } elseif ($jabatanLower === 'penanggung jawab') {
+                $role = 'penanggung jawab';
             }
 
             $newUser->update([
@@ -135,20 +136,18 @@ class MemberController extends Controller implements HasMiddleware
     {
         $request->validate([
             'nama'              => 'required|string|max:255',
-            'no_hp'             => 'required|string|max:20',
             'jabatan'           => 'required|string|max:100',
             'tanggal_bergabung' => 'required|date',
             'status_anggota'    => 'required|in:aktif,tidak aktif',
             'alamat'            => 'required|string',
-            'nik'               => 'nullable|string|max:20',
             'divisi_id'         => 'nullable|exists:divisi,id_divisi',
         ]);
 
         $data = $request->all();
 
-        // Cek otorisasi untuk mengubah jabatan (Ketua, Wakil Ketua, Sekretaris, atau user Admin)
+        // Cek otorisasi untuk mengubah jabatan (Wakil Ketua, Sekretaris, atau user Admin)
         $currentUserJabatan = strtolower(auth()->user()->anggota?->jabatan ?? '');
-        $allowedToChangeJabatan = in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris'], true) || auth()->user()->name === 'admin';
+        $allowedToChangeJabatan = in_array($currentUserJabatan, ['wakil ketua', 'sekretaris'], true) || auth()->user()->name === 'admin';
 
         if (!$allowedToChangeJabatan) {
             // Paksa jabatan tetap menggunakan nilai yang lama di database
@@ -161,8 +160,11 @@ class MemberController extends Controller implements HasMiddleware
         $user = User::where('anggota_id', $member->id_anggota)->first();
         if ($user) {
             $role = 'anggota';
-            if (in_array(strtolower($member->jabatan), ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'], true)) {
+            $jabatanLower = strtolower($member->jabatan);
+            if (in_array($jabatanLower, ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'], true)) {
                 $role = 'pengurus';
+            } elseif ($jabatanLower === 'penanggung jawab') {
+                $role = 'penanggung jawab';
             }
             $user->update(['role' => $role]);
         }
@@ -175,6 +177,9 @@ class MemberController extends Controller implements HasMiddleware
         if (auth()->user()->anggota_id === $member->id_anggota) {
             return redirect()->route('members.index')->with('error', 'Anda tidak dapat menghapus diri Anda sendiri dari data anggota.');
         }
+
+        // Hapus user yang terhubung dengan anggota ini
+        User::where('anggota_id', $member->id_anggota)->delete();
 
         $member->delete();
 

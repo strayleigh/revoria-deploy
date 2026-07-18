@@ -12,6 +12,7 @@ class Kepanitiaan extends Model
     protected $table = 'kepanitiaan';
     protected $primaryKey = 'id_kepanitiaan';
     public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'kode_kegiatan',

@@ -32,12 +32,17 @@ class LaporanController extends Controller
 
     private function exportAnggota(): StreamedResponse
     {
-        $rows = Anggota::orderBy('nama')->get();
+        $rows = Anggota::with('user')->orderBy('nama')->get();
 
-        $header = ['No', 'Nama', 'NIK', 'Alamat', 'No HP', 'Jabatan', 'Status', 'Tanggal Bergabung'];
+        $header = ['No', 'Nama', 'Alamat', 'No HP', 'Jabatan', 'Status', 'Tanggal Bergabung'];
         $data = $rows->map(fn($r, $i) => [
-            $i + 1, $r->nama, $r->nik, $r->alamat, $r->no_hp,
-            $r->jabatan, $r->status_anggota, $r->tanggal_bergabung?->format('d/m/Y'),
+            $i + 1, 
+            $r->nama, 
+            $r->alamat ?: '-', 
+            $r->user?->no_hp ?: ($r->no_hp ?: '-'),
+            $r->jabatan, 
+            $r->status_anggota, 
+            $r->tanggal_bergabung?->format('d/m/Y') ?: '-',
         ]);
 
         $summary = [
@@ -52,13 +57,38 @@ class LaporanController extends Controller
 
     private function exportKegiatan(): StreamedResponse
     {
-        $rows = Kegiatan::withCount('absensi')->orderByDesc('tanggal')->get();
+        $rows = Kegiatan::with(['panitia.anggota', 'transaksi', 'absensi'])->orderByDesc('tanggal')->get();
 
-        $header = ['No', 'Nama Kegiatan', 'Tanggal', 'Lokasi', 'Status', 'Progres (%)', 'Jumlah Peserta'];
-        $data = $rows->map(fn($r, $i) => [
-            $i + 1, $r->nama_kegiatan, $r->tanggal?->format('d/m/Y'),
-            $r->lokasi, $r->status, $r->progres, $r->absensi_count,
-        ]);
+        $header = ['No', 'Nama Kegiatan', 'Tanggal', 'Lokasi', 'Status', 'Progres (%)', 'Deskripsi', 'Dana Terkumpul', 'Kepanitiaan', 'Panitia Hadir'];
+        
+        $data = $rows->map(function($r, $i) {
+            // Dana Terkumpul
+            $dana = $r->transaksi->where('jenis_transaksi', 'pemasukan')->sum('nominal');
+            $danaFormatted = 'Rp ' . number_format($dana, 0, ',', '.');
+            
+            // Kepanitiaan
+            $kepanitiaan = $r->panitia->map(fn($p) => ($p->anggota?->nama ?? '-') . ' (' . $p->posisi . ')')->implode(', ');
+            if (empty($kepanitiaan)) {
+                $kepanitiaan = '-';
+            }
+
+            // Jumlah panitia yg melakukan absensi
+            $panitiaIds = $r->panitia->pluck('id_anggota')->toArray();
+            $absensiPanitiaCount = $r->absensi->whereIn('id_anggota', $panitiaIds)->count();
+            
+            return [
+                $i + 1,
+                $r->nama_kegiatan,
+                $r->tanggal?->format('d/m/Y') ?: '-',
+                $r->lokasi ?: '-',
+                ucfirst($r->status),
+                ($r->progres ?? 0) . '%',
+                $r->deskripsi ?: '-',
+                $danaFormatted,
+                $kepanitiaan,
+                $absensiPanitiaCount . ' Orang',
+            ];
+        });
 
         $summary = [
             'Total Kegiatan'     => $rows->count() . ' Kegiatan',

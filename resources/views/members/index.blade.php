@@ -1,6 +1,6 @@
 @php
     $currentUserJabatan = strtolower(auth()->user()->anggota?->jabatan ?? '');
-    $canManage = in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris'], true) || auth()->user()->name === 'admin';
+    $canManage = in_array($currentUserJabatan, ['wakil ketua', 'sekretaris'], true) || auth()->user()->name === 'admin';
 @endphp
 <x-sidebar title="Anggota">
 
@@ -145,7 +145,7 @@
                             <td class="fw-semibold">{{ $anggota->nama }}</td>
                             <td>{{ $anggota->jabatan ?: 'Anggota' }}</td>
                             <td>{{ $anggota->divisi?->nama_divisi ?? '-' }}</td>
-                            <td>{{ $anggota->no_hp ?: '-' }}</td>
+                            <td>{{ $anggota->user->no_hp ?? '-' }}</td>
                             <td>
                                 <span class="badge {{ $anggota->status_anggota === 'aktif' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }}">
                                     {{ ucfirst($anggota->status_anggota) }}
@@ -159,10 +159,9 @@
                                 <button class="btn btn-outline-primary btn-sm"
                                     data-bs-toggle="modal" data-bs-target="#detailModal"
                                     onclick="bukaDetail(this)"
-                                    data-nik="{{ $anggota->nik }}"
                                     data-nama="{{ $anggota->nama }}"
                                     data-jabatan="{{ $anggota->jabatan }}"
-                                    data-hp="{{ $anggota->no_hp }}"
+                                    data-hp="{{ $anggota->user->no_hp ?? '-' }}"
                                     data-status="{{ $anggota->status_anggota }}"
                                     data-tanggal="{{ $anggota->tanggal_bergabung ? \Carbon\Carbon::parse($anggota->tanggal_bergabung)->format('d M Y') : '-' }}"
                                     data-alamat="{{ $anggota->alamat }}"
@@ -226,46 +225,29 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row g-4">
-                        <!-- Foto -->
-                        <div class="col-lg-3">
-                            <div class="foto-upload-box">
-                                <img id="detailFoto" src="https://via.placeholder.com/150" alt="Foto">
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <div class="detail-label">Nama Lengkap</div>
+                            <div class="detail-value" id="detailNama">-</div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="detail-label">Divisi</div>
+                            <div class="detail-value" id="detailJabatan">-</div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value">
+                                <span class="badge bg-success-subtle text-success" id="detailStatus">-</span>
                             </div>
                         </div>
-                        <!-- Data -->
-                        <div class="col-lg-9">
-                            <div class="row g-3">
-                                <div class="col-lg-6">
-                                    <div class="detail-label">Nama Lengkap</div>
-                                    <div class="detail-value" id="detailNama">-</div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="detail-label">NIK</div>
-                                    <div class="detail-value" id="detailNik">-</div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="detail-label">Divisi</div>
-                                    <div class="detail-value" id="detailJabatan">-</div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="detail-label">Status</div>
-                                    <div class="detail-value">
-                                        <span class="badge bg-success-subtle text-success" id="detailStatus">-</span>
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="detail-label">No. HP</div>
-                                    <div class="detail-value" id="detailHp">-</div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="detail-label">Tanggal Bergabung</div>
-                                    <div class="detail-value" id="detailTanggal">-</div>
-                                </div>
-                            </div>
+                        <div class="col-lg-6">
+                            <div class="detail-label">No. HP</div>
+                            <div class="detail-value" id="detailHp">-</div>
                         </div>
-                    </div>
-                    <div class="row g-3 mt-1">
+                        <div class="col-lg-6">
+                            <div class="detail-label">Tanggal Bergabung</div>
+                            <div class="detail-value" id="detailTanggal">-</div>
+                        </div>
                         <div class="col-lg-12">
                             <div class="detail-label">Alamat</div>
                             <div class="detail-value" id="detailAlamat">-</div>
@@ -307,17 +289,11 @@
     <script>
         function bukaDetail(btn) {
             document.getElementById('detailNama').innerText    = btn.dataset.nama    || '-';
-            document.getElementById('detailNik').innerText     = btn.dataset.nik     || '-';
             document.getElementById('detailJabatan').innerText = btn.dataset.jabatan || '-';
             document.getElementById('detailStatus').innerText  = btn.dataset.status  || '-';
             document.getElementById('detailHp').innerText      = btn.dataset.hp      || '-';
             document.getElementById('detailTanggal').innerText = btn.dataset.tanggal || '-';
             document.getElementById('detailAlamat').innerText  = btn.dataset.alamat  || '-';
-
-            const foto = btn.dataset.foto;
-            document.getElementById('detailFoto').src = foto
-                ? foto
-                : 'https://via.placeholder.com/150';
         }
 
         let urlHapus = '';

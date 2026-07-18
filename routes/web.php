@@ -9,6 +9,7 @@ use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\KepanitiaanController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -57,9 +58,22 @@ Route::middleware(['auth', 'role:pengurus'])->group(function () {
     Route::patch('/members/{member}/assign', [MemberController::class, 'assignUser'])->name('members.assign');
     Route::resource('members', MemberController::class)->except(['index', 'show']);
     Route::resource('divisi', DivisiController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::resource('kegiatan', KegiatanController::class)->except(['index', 'show']);
+    Route::get('/kegiatan/create', [KegiatanController::class, 'create'])->name('kegiatan.create');
+    Route::post('/kegiatan', [KegiatanController::class, 'store'])->name('kegiatan.store');
+    Route::delete('/kegiatan/{kegiatan}', [KegiatanController::class, 'destroy'])->name('kegiatan.destroy');
     Route::resource('keuangan', KeuanganController::class)->parameters(['keuangan' => 'keuangan'])->except(['index', 'show']);
     Route::get('/absensi/kegiatan/{kodeKegiatan}', [AbsensiController::class, 'getAbsensiByKegiatan'])->name('absensi.kegiatan');
+    
+    // Kepanitiaan
+    Route::get('/kegiatan/{kegiatan}/kepanitiaan', [KepanitiaanController::class, 'index'])->name('kegiatan.kepanitiaan.index');
+    Route::post('/kegiatan/{kegiatan}/kepanitiaan', [KepanitiaanController::class, 'store'])->name('kegiatan.kepanitiaan.store');
+    Route::delete('/kepanitiaan/{kepanitiaan}', [KepanitiaanController::class, 'destroy'])->name('kegiatan.kepanitiaan.destroy');
+});
+
+// Pengurus, Penanggung Jawab, dan Anggota (karena Anggota bisa menjadi Ketua Pelaksana kegiatan)
+Route::middleware(['auth', 'role:pengurus,penanggung jawab,anggota'])->group(function () {
+    Route::get('/kegiatan/{kegiatan}/edit', [KegiatanController::class, 'edit'])->name('kegiatan.edit');
+    Route::match(['put', 'patch'], '/kegiatan/{kegiatan}', [KegiatanController::class, 'update'])->name('kegiatan.update');
 });
 
 require __DIR__.'/auth.php';

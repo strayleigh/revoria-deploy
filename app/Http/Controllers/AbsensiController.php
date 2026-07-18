@@ -14,9 +14,34 @@ class AbsensiController extends Controller implements HasMiddleware
     {
         return [
             new Middleware(function ($request, $next) {
-                if (auth()->user()?->role === 'pembina') {
+                $user = auth()->user();
+                if ($user?->role === 'pembina') {
                     abort(403, 'Pembina tidak memiliki akses ke halaman absensi.');
                 }
+
+                $routeAction = $request->route()->getActionMethod();
+                $jabatan = strtolower($user->anggota?->jabatan ?? '');
+
+                // Admin bypasses all checks
+                if ($user->name === 'admin') {
+                    return $next($request);
+                }
+
+                // getAbsensiByKegiatan: Ketua, Wakil Ketua, Sekretaris
+                if ($routeAction === 'getAbsensiByKegiatan') {
+                    $allowed = in_array($jabatan, ['ketua', 'wakil ketua', 'sekretaris'], true);
+                    if (!$allowed) {
+                        abort(403, 'Hanya Ketua, Wakil Ketua, dan Sekretaris yang dapat melihat rekap absensi.');
+                    }
+                }
+
+                // edit, update, destroy: Hanya Sekretaris
+                if (in_array($routeAction, ['edit', 'update', 'destroy'], true)) {
+                    if ($jabatan !== 'sekretaris') {
+                        abort(403, 'Hanya Sekretaris yang dapat mengelola absensi.');
+                    }
+                }
+
                 return $next($request);
             }),
         ];
@@ -73,6 +98,17 @@ class AbsensiController extends Controller implements HasMiddleware
                 ->with('error', 'Akun Anda belum terhubung ke data anggota. Silakan pilih nama Anda di halaman profil terlebih dahulu.');
         }
 
+        // Validasi status kegiatan: Semua user (termasuk pengurus) kecuali admin tidak boleh absen jika status kegiatan tidak "berlangsung"
+        $kegiatan = Kegiatan::where('kode_kegiatan', $request->kode_kegiatan)->firstOrFail();
+        $user = auth()->user();
+        if ($user->name !== 'admin') {
+            if ($kegiatan->status !== 'berlangsung') {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Absensi hanya dapat dilakukan untuk kegiatan yang sedang berlangsung.');
+            }
+        }
+
         // Cek duplikasi absensi untuk kegiatan yang sama
         $sudahAbsen = Absensi::where('id_anggota', $anggota->id_anggota)
             ->where('kode_kegiatan', $request->kode_kegiatan)
@@ -97,8 +133,10 @@ class AbsensiController extends Controller implements HasMiddleware
 
     public function edit(Absensi $absensi)
     {
-        if (auth()->user()->name !== 'admin') {
-            abort(403, 'Hanya user admin yang dapat mengelola (edit/hapus) data absensi.');
+        $user = auth()->user();
+        $jabatan = strtolower($user->anggota?->jabatan ?? '');
+        if ($user->name !== 'admin' && $jabatan !== 'sekretaris') {
+            abort(403, 'Hanya Sekretaris dan Admin yang dapat mengelola data absensi.');
         }
 
         $kegiatans = Kegiatan::orderByDesc('tanggal')->get();
@@ -108,8 +146,10 @@ class AbsensiController extends Controller implements HasMiddleware
 
     public function update(Request $request, Absensi $absensi)
     {
-        if (auth()->user()->name !== 'admin') {
-            abort(403, 'Hanya user admin yang dapat mengelola (edit/hapus) data absensi.');
+        $user = auth()->user();
+        $jabatan = strtolower($user->anggota?->jabatan ?? '');
+        if ($user->name !== 'admin' && $jabatan !== 'sekretaris') {
+            abort(403, 'Hanya Sekretaris dan Admin yang dapat mengelola data absensi.');
         }
 
         $request->validate([
@@ -126,8 +166,10 @@ class AbsensiController extends Controller implements HasMiddleware
 
     public function destroy(Absensi $absensi)
     {
-        if (auth()->user()->name !== 'admin') {
-            abort(403, 'Hanya user admin yang dapat mengelola (edit/hapus) data absensi.');
+        $user = auth()->user();
+        $jabatan = strtolower($user->anggota?->jabatan ?? '');
+        if ($user->name !== 'admin' && $jabatan !== 'sekretaris') {
+            abort(403, 'Hanya Sekretaris dan Admin yang dapat mengelola data absensi.');
         }
 
         $absensi->delete();

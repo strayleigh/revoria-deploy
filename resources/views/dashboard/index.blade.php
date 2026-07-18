@@ -46,7 +46,7 @@
 
     <!-- ================= ROW 1: Kegiatan Hari Ini + Presensi Cepat ================= -->
     <div class="row g-4 align-items-stretch">
-        <div class="col-lg-8 d-flex">
+        <div class="{{ auth()->user()->role === 'pembina' ? 'col-12' : 'col-lg-8' }} d-flex">
             <div class="dashboard-card w-100 d-flex flex-column" style="min-height:0;">
                 <h5 class="mb-3">Kegiatan Hari Ini</h5>
                 <ul class="list-group overflow-auto flex-grow-1" style="max-height:260px;">
@@ -88,6 +88,7 @@
                 </ul>
             </div>
         </div>
+        @if(auth()->user()->role !== 'pembina')
         <div class="col-lg-4 d-flex">
             <div class="dashboard-card w-100 d-flex flex-column align-items-center justify-content-center text-center gap-3">
                 <div>
@@ -102,11 +103,12 @@
                 </a>
             </div>
         </div>
+        @endif
     </div>
 
     <!-- ================= ROW 2: Kegiatan Mendatang + Aksi Cepat ================= -->
     <div class="row g-4 mt-1 align-items-stretch">
-        <div class="col-lg-8 d-flex">
+        <div class="{{ auth()->user()->role === 'pembina' ? 'col-12' : 'col-lg-8' }} d-flex">
             <div class="dashboard-card w-100 d-flex flex-column" style="min-height:0;">
                 <h5 class="mb-3">Kegiatan Mendatang</h5>
                 <ul class="list-group overflow-auto flex-grow-1" style="max-height:260px;">
@@ -148,6 +150,7 @@
                 </ul>
             </div>
         </div>
+        @if(auth()->user()->role !== 'pembina')
         <div class="col-lg-4 d-flex">
             <div class="dashboard-card w-100 d-flex flex-column justify-content-center">
                 <h5 class="mb-3">Aksi Cepat</h5>
@@ -188,6 +191,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 
 </x-sidebar>

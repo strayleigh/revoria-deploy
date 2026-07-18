@@ -39,52 +39,66 @@
                     @else
                         <div class="row g-4">
                             @foreach($folders as $folder)
-                                <div class="col-lg-4">
-                                    <div class="folder-card"
+                                <div class="col-lg-4 d-flex">
+                                    <div class="folder-card shadow border-0 w-100 h-100 p-4 d-flex flex-column justify-content-between"
+                                         style="border-radius: 20px; transition: all 0.3s;"
                                          role="button"
                                          onclick="window.location.href='{{ route('dokumen.folder-detail', $folder->id_folder) }}'">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <i class="bi bi-folder-fill folder-icon"></i>
-                                            @if(auth()->user()->role === 'pengurus' || auth()->user()->name === 'admin')
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm folder-menu-btn"
-                                                        data-bs-toggle="dropdown"
-                                                        onclick="event.stopPropagation()">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu" onclick="event.stopPropagation()">
-                                                    <li>
-                                                        <a class="dropdown-item"
-                                                           href="#"
-                                                           onclick="bukaUbahNama(event, {{ $folder->id_folder }}, '{{ $folder->nama_folder }}')">
-                                                            <i class="bi bi-pencil"></i> Ubah Nama
-                                                        </a>
-                                                    </li>
-                                                    @if($folder->gdrive_folder)
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                               href="{{ $folder->gdrive_folder }}"
-                                                               target="_blank">
-                                                                <i class="bi bi-google"></i> Buka di Google Drive
-                                                            </a>
-                                                        </li>
+                                        <div>
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div class="folder-icon-wrapper rounded-4 d-flex align-items-center justify-content-center bg-primary-subtle" style="width: 52px; height: 52px; background: rgba(108, 99, 255, 0.1);">
+                                                    <i class="bi bi-folder-fill fs-2 text-primary" style="color: #6c63ff !important; filter: drop-shadow(0 4px 6px rgba(108, 99, 255, 0.25));"></i>
+                                                </div>
+                                                
+                                                <div class="d-flex align-items-center gap-1.5">
+
+                                                    
+                                                    @if(auth()->user()->role === 'pengurus' || auth()->user()->name === 'admin')
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-sm folder-menu-btn rounded-circle d-inline-flex align-items-center justify-content-center"
+                                                                style="width: 32px; height: 32px; background: rgba(0,0,0,0.025);"
+                                                                data-bs-toggle="dropdown"
+                                                                onclick="event.stopPropagation()">
+                                                            <i class="bi bi-three-dots-vertical"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3" onclick="event.stopPropagation()">
+                                                            <li>
+                                                                <a class="dropdown-item py-2"
+                                                                   href="#"
+                                                                   onclick="bukaUbahNama(event, {{ $folder->id_folder }}, '{{ $folder->nama_folder }}')">
+                                                                    <i class="bi bi-pencil me-2 text-warning"></i> Ubah Nama
+                                                                </a>
+                                                            </li>
+                                                            @if($folder->gdrive_folder)
+                                                                <li>
+                                                                    <a class="dropdown-item py-2"
+                                                                       href="{{ $folder->gdrive_folder }}"
+                                                                       target="_blank">
+                                                                        <i class="bi bi-google me-2 text-success"></i> Buka di Drive
+                                                                    </a>
+                                                                </li>
+                                                            @endif
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            <li>
+                                                                <a class="dropdown-item py-2 text-danger"
+                                                                   href="#"
+                                                                   onclick="bukaHapusFolder(event, {{ $folder->id_folder }}, '{{ $folder->nama_folder }}')">
+                                                                    <i class="bi bi-trash me-2"></i> Hapus Folder
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
                                                     @endif
-                                                    <li>
-                                                        <a class="dropdown-item text-danger"
-                                                           href="#"
-                                                           onclick="bukaHapusFolder(event, {{ $folder->id_folder }}, '{{ $folder->nama_folder }}')">
-                                                            <i class="bi bi-trash"></i> Hapus Folder
-                                                        </a>
-                                                    </li>
-                                                </ul>
+                                                </div>
                                             </div>
-                                            @endif
+                                            
+                                            <h5 class="fw-bold text-dark dark:text-white mb-2" style="font-size: 17px; line-height: 1.4;">{{ $folder->nama_folder }}</h5>
                                         </div>
-                                        <h5 class="mt-3 fw-semibold">{{ $folder->nama_folder }}</h5>
-                                        <small class="text-muted">
-                                            Dibuat
-                                            {{ $folder->tanggal_dibuat?->format('d M Y') ?? '-' }}
-                                        </small>
+                                        
+                                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center text-muted small">
+                                            <span>Dibuat</span>
+                                            <span>{{ $folder->tanggal_dibuat?->format('d M Y') ?? '-' }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach

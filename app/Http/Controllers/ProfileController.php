@@ -65,12 +65,7 @@ class ProfileController extends Controller
 
         $user->save();
 
-        // Sinkronisasi no_hp ke data Anggota jika terhubung
-        if ($user->anggota_id) {
-            $user->anggota->update([
-                'no_hp' => $request->no_hp
-            ]);
-        }
+
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

@@ -1,3 +1,8 @@
+@php
+    $user = auth()->user();
+    $jabatan = strtolower($user?->anggota?->jabatan ?? '');
+    $isBendaharaOrAdmin = $user?->name === 'admin' || $jabatan === 'bendahara';
+@endphp
 <x-sidebar title="Keuangan">
     <h2 class="mb-4 fw-bold">Keuangan</h2>
 
@@ -66,7 +71,7 @@
                     <div class="col-lg-auto d-flex gap-2">
                         <button type="submit" class="btn btn-outline-secondary px-3"><i class="bi bi-search"></i></button>
                         <a href="{{ route('keuangan.index') }}" class="btn btn-outline-secondary px-3"><i class="bi bi-x-lg"></i></a>
-                        @if(auth()->user()->role === 'pengurus' || auth()->user()->name === 'admin')
+                        @if($isBendaharaOrAdmin)
                         <a href="{{ route('keuangan.create') }}" class="btn btn-primary px-4">
                             <i class="bi bi-plus-circle"></i> Catat Transaksi
                         </a>
@@ -89,7 +94,7 @@
                         <th>Kegiatan</th>
                         <th>Jenis</th>
                         <th>Nominal</th>
-                        @if(auth()->user()->role === 'pengurus' || auth()->user()->name === 'admin')
+                        @if($isBendaharaOrAdmin)
                         <th>Aksi</th>
                         @endif
                     </tr>
@@ -110,7 +115,7 @@
                             <td class="fw-semibold {{ $t->jenis_transaksi == 'pemasukan' ? 'text-success' : 'text-danger' }}">
                                 {{ $t->jenis_transaksi == 'pemasukan' ? '+' : '-' }}Rp{{ number_format($t->nominal, 0, ',', '.') }}
                             </td>
-                            @if(auth()->user()->role === 'pengurus' || auth()->user()->name === 'admin')
+                            @if($isBendaharaOrAdmin)
                             <td>
                                 <a href="{{ route('keuangan.edit', $t) }}" class="btn btn-outline-warning btn-sm">
                                     <i class="bi bi-pencil"></i>
@@ -126,7 +131,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ (auth()->user()->role === 'pengurus' || auth()->user()->name === 'admin') ? 8 : 7 }}" class="py-5 text-muted">
+                            <td colspan="{{ $isBendaharaOrAdmin ? 8 : 7 }}" class="py-5 text-muted">
                                 <i class="bi bi-wallet2 fs-1 d-block mb-2"></i>
                                 Belum ada transaksi.
                             </td>

@@ -31,13 +31,43 @@
                             <option value="selesai"     {{ old('status', $kegiatan->status) == 'selesai'     ? 'selected' : '' }}>Selesai</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Progres (%)</label>
-                        <input type="number" name="progres" class="form-control" value="{{ old('progres', $kegiatan->progres) }}" min="0" max="100">
-                    </div>
                     <div class="col-12">
                         <label class="form-label fw-semibold">Deskripsi</label>
                         <textarea name="deskripsi" class="form-control" rows="3">{{ old('deskripsi', $kegiatan->deskripsi) }}</textarea>
+                    </div>
+                    
+                    <!-- ========== CHECKLIST PERSIAPAN ========== -->
+                    <div class="col-12 mt-3">
+                        <label class="form-label fw-semibold d-flex justify-content-between">
+                            <span>Checklist Persiapan</span>
+                            <span class="fw-bold text-primary" id="progresValue">{{ $kegiatan->progres ?? 0 }}%</span>
+                        </label>
+                        <input type="hidden" name="progres" id="inputProgres" value="{{ old('progres', $kegiatan->progres ?? 0) }}">
+                        <div class="progress mb-3" style="height:10px; border-radius: 5px;">
+                            <div class="progress-bar" id="progresBarForm" role="progressbar" style="width: {{ $kegiatan->progres ?? 0 }}%"></div>
+                        </div>
+                        <div class="checklist-box p-3 border rounded-3 bg-light bg-opacity-50">
+                            <div class="row g-3">
+                                @php
+                                    $items = ['Proposal','Surat Permohonan','Surat Peminjaman','Lokasi','Keuangan','Alat-alat','Konsumsi','LPJ'];
+                                    $progres = old('progres', $kegiatan->progres ?? 0);
+                                @endphp
+                                @foreach($items as $index => $item)
+                                    @php
+                                        $threshold = ($index + 1) * 12.5;
+                                        $isChecked = $progres >= ($threshold - 6);
+                                    @endphp
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input checklist-item" type="checkbox"
+                                                   id="cek{{ Str::slug($item) }}" value="{{ $item }}"
+                                                   {{ $isChecked ? 'checked' : '' }}>
+                                            <label class="form-check-label fw-medium" for="cek{{ Str::slug($item) }}">{{ $item }}</label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="mt-4 d-flex gap-2">
@@ -47,4 +77,23 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function hitungProgres() {
+                const items = document.querySelectorAll('.checklist-item');
+                const total = items.length;
+                const dicentang = document.querySelectorAll('.checklist-item:checked').length;
+                const persen = total === 0 ? 0 : Math.round((dicentang / total) * 100);
+                
+                document.getElementById('progresValue').innerText = persen + '%';
+                document.getElementById('progresBarForm').style.width = persen + '%';
+                document.getElementById('inputProgres').value = persen;
+            }
+
+            document.querySelectorAll('.checklist-item').forEach(function(item) {
+                item.addEventListener('change', hitungProgres);
+            });
+        });
+    </script>
 </x-sidebar>

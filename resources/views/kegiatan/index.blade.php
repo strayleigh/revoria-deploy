@@ -50,30 +50,60 @@
     <div class="row g-4 align-items-stretch">
         @forelse($kegiatans as $kegiatan)
             @php
-                $badgeClass = match($kegiatan->status) {
+                $borderColorClass = match($kegiatan->status) {
                     'berlangsung' => 'bg-success',
-                    'terjadwal'   => 'bg-warning text-dark',
+                    'terjadwal'   => 'bg-warning',
                     default       => 'bg-secondary',
+                };
+                
+                $badgeStyle = match($kegiatan->status) {
+                    'berlangsung' => 'bg-success-subtle text-success border border-success-subtle',
+                    'terjadwal'   => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
+                    default       => 'bg-secondary-subtle text-secondary border border-secondary-subtle',
                 };
             @endphp
             <div class="col-lg-4 d-flex">
-                <div class="card kegiatan-card shadow-sm border-0 w-100 h-100">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h5 class="fw-bold">{{ $kegiatan->nama_kegiatan }}</h5>
-                                <span class="badge {{ $badgeClass }}">{{ ucfirst($kegiatan->status) }}</span>
+                <div class="card kegiatan-card shadow border-0 w-100 h-100 position-relative overflow-hidden" style="border-radius: 20px;">
+                    <div class="card-body d-flex flex-column p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge rounded-pill px-3 py-1.5 fs-7 {{ $badgeStyle }}">{{ ucfirst($kegiatan->status) }}</span>
+                            <span class="text-primary fw-bold small"><i class="bi bi-wallet2 me-1"></i> Rp{{ number_format($kegiatan->transaksi->where('jenis_transaksi', 'pemasukan')->sum('nominal'), 0, ',', '.') }}</span>
+                        </div>
+                        
+                        <h5 class="fw-bold mb-3 text-dark dark:text-white" style="line-height: 1.4;">{{ $kegiatan->nama_kegiatan }}</h5>
+                        
+                        @if($kegiatan->deskripsi)
+                            <p class="text-muted small mb-4 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.6;">
+                                {{ $kegiatan->deskripsi }}
+                            </p>
+                        @else
+                            <div class="flex-grow-1 mb-4"></div>
+                        @endif
+
+                        <div class="d-flex flex-column gap-2.5 mb-4 p-3 rounded-4" style="background-color: rgba(0, 0, 0, 0.025);">
+                            <div class="d-flex align-items-center text-secondary small">
+                                <i class="bi bi-calendar3 text-primary me-2"></i>
+                                <span>{{ $kegiatan->tanggal?->format('d M Y') ?: '-' }}</span>
+                            </div>
+                            <div class="d-flex align-items-center text-secondary small">
+                                <i class="bi bi-geo-alt text-primary me-2"></i>
+                                <span class="text-truncate">{{ $kegiatan->lokasi ?: '-' }}</span>
                             </div>
                         </div>
-                        <hr>
-                        <p><i class="bi bi-calendar3"></i> {{ $kegiatan->tanggal?->format('d M Y') ?: '-' }}</p>
-                        <p><i class="bi bi-geo-alt"></i> {{ $kegiatan->lokasi ?: '-' }}</p>
-                        @if($kegiatan->deskripsi)
-                            <p class="text-muted small">{{ Str::limit($kegiatan->deskripsi, 80) }}</p>
-                        @endif
-                        <hr class="mt-auto">
-                        <div class="d-flex justify-content-between">
-                            <button class="btn btn-outline-primary btn-sm"
+
+                        <!-- Mini Progres Bar -->
+                        <div class="mb-4 pt-1">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-secondary fw-semibold">Progres</span>
+                                <span class="small text-primary fw-bold">{{ $kegiatan->progres ?? 0 }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px; border-radius: 10px;">
+                                <div class="progress-bar rounded-pill" role="progressbar" style="width: {{ $kegiatan->progres ?? 0 }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                            <button class="btn btn-primary btn-sm px-3 rounded-pill d-inline-flex align-items-center gap-1.5"
                                     data-bs-toggle="modal" data-bs-target="#detailKegiatanModal"
                                     onclick="bukaDetailKegiatan(this)"
                                     data-id="{{ $kegiatan->kode_kegiatan }}"
@@ -82,32 +112,53 @@
                                     data-lokasi="{{ $kegiatan->lokasi }}"
                                     data-deskripsi="{{ $kegiatan->deskripsi }}"
                                     data-status="{{ $kegiatan->status }}"
-                                    data-progres="{{ $kegiatan->progres ?? 0 }}">
+                                    data-progres="{{ $kegiatan->progres ?? 0 }}"
+                                    data-dana="Rp{{ number_format($kegiatan->transaksi->where('jenis_transaksi', 'pemasukan')->sum('nominal'), 0, ',', '.') }}"
+                                    data-panitia="{{ json_encode($kegiatan->panitia->map(fn($p) => ['nama' => $p->anggota?->nama ?? '-', 'posisi' => $p->posisi])) }}"
+                                    @php
+                                        $user = auth()->user();
+                                        $jabatanVal = strtolower($user?->anggota?->jabatan ?? '');
+                                        $isAllowedKepanitiaan = $user?->name === 'admin' || ($user?->role === 'pengurus' && $jabatanVal !== 'bendahara');
+                                    @endphp
+                                    data-is-pengurus="{{ $isAllowedKepanitiaan ? 'true' : 'false' }}"
+                                    data-kelola-url="{{ route('kegiatan.kepanitiaan.index', $kegiatan->kode_kegiatan) }}">
                                 <i class="bi bi-eye"></i> Detail
                             </button>
-                            @if(auth()->user()?->isKetua())
-                                <div class="d-flex gap-1">
-                                    <button class="btn btn-warning btn-sm d-inline-flex align-items-center justify-content-center"
-                                            style="width: 32px; height: 32px; padding: 0 !important;"
-                                            data-bs-toggle="modal" data-bs-target="#formKegiatanModal"
-                                            onclick="bukaEditKegiatan(this)"
-                                            data-id="{{ $kegiatan->kode_kegiatan }}"
-                                            data-nama="{{ $kegiatan->nama_kegiatan }}"
-                                            data-tanggal="{{ $kegiatan->tanggal?->format('Y-m-d') }}"
-                                            data-lokasi="{{ $kegiatan->lokasi }}"
-                                            data-deskripsi="{{ $kegiatan->deskripsi }}"
-                                            data-status="{{ $kegiatan->status }}"
-                                            data-progres="{{ $kegiatan->progres ?? 0 }}">
-                                        <i class="bi bi-pencil" style="margin: 0 !important;"></i>
-                                    </button>
-                                    <button class="btn btn-danger btn-sm d-inline-flex align-items-center justify-content-center"
-                                            style="width: 32px; height: 32px; padding: 0 !important;"
-                                            data-bs-toggle="modal" data-bs-target="#hapusKegiatanModal"
-                                            onclick="bukaHapusKegiatan(this)"
-                                            data-id="{{ $kegiatan->kode_kegiatan }}"
-                                            data-nama="{{ $kegiatan->nama_kegiatan }}">
-                                        <i class="bi bi-trash" style="margin: 0 !important;"></i>
-                                    </button>
+                            
+                            @php
+                                $user = auth()->user();
+                                $jabatan = strtolower($user?->anggota?->jabatan ?? '');
+                                $isPanitiaEditAuthorized = $kegiatan->panitia
+                                    ->where('id_anggota', $user?->anggota_id)
+                                    ->whereIn('posisi', ['Ketua Pelaksana', 'Sekretaris'])
+                                    ->isNotEmpty();
+                                
+                                $canEdit = $user?->name === 'admin' 
+                                    || in_array($jabatan, ['ketua', 'sekretaris'], true) 
+                                    || $isPanitiaEditAuthorized;
+                                    
+                                $canDelete = $user?->name === 'admin' 
+                                    || in_array($jabatan, ['ketua', 'sekretaris'], true);
+                            @endphp
+                            @if($canEdit || $canDelete)
+                                <div class="d-flex gap-2">
+                                    @if($canEdit)
+                                        <a href="{{ route('kegiatan.edit', $kegiatan->kode_kegiatan) }}" 
+                                           class="btn btn-outline-warning rounded-circle d-flex align-items-center justify-content-center"
+                                           style="width: 34px; height: 34px; padding: 0;">
+                                            <i class="bi bi-pencil" style="font-size: 14px; line-height: 0; margin: 0; padding: 0; vertical-align: middle;"></i>
+                                        </a>
+                                    @endif
+                                    @if($canDelete)
+                                        <button class="btn btn-outline-danger rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width: 34px; height: 34px; padding: 0;"
+                                                data-bs-toggle="modal" data-bs-target="#hapusKegiatanModal"
+                                                onclick="bukaHapusKegiatan(this)"
+                                                data-id="{{ $kegiatan->kode_kegiatan }}"
+                                                data-nama="{{ $kegiatan->nama_kegiatan }}">
+                                            <i class="bi bi-trash" style="font-size: 14px; line-height: 0; margin: 0; padding: 0; vertical-align: middle;"></i>
+                                        </button>
+                                    @endif
                                 </div>
                             @endif
                         </div>
@@ -217,7 +268,7 @@
                     <h5 class="modal-title fw-bold">Detail Kegiatan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body pb-0">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <h4 class="fw-bold mb-0" id="detailNamaKegiatan">-</h4>
                         <span class="badge bg-success fs-6" id="detailStatusKegiatan">-</span>
@@ -232,8 +283,12 @@
                             <div class="detail-value" id="detailLokasiKegiatan">-</div>
                         </div>
                         <div class="col-lg-6">
+                            <div class="detail-label"><i class="bi bi-folder"></i> Dana Terkumpul</div>
+                            <div class="detail-value" id="detailDanaKegiatan">Rp0</div>
+                        </div>
+                        <div class="col-lg-6">
                             <div class="detail-label"><i class="bi bi-bar-chart"></i> Progres</div>
-                            <div class="progress" style="height:22px;">
+                            <div class="progress" style="height:22px; border-radius: 6px;">
                                 <div class="progress-bar" id="detailProgresBar"
                                      role="progressbar" style="width:0%">0%</div>
                             </div>
@@ -243,14 +298,29 @@
                             <div class="detail-value" id="detailDeskripsiKegiatan">-</div>
                         </div>
                     </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">Kepanitiaan</h5>
+                        <a id="btnKelolaKepanitiaan" href="#" class="btn btn-outline-primary btn-sm px-3 rounded-pill" style="display: none;">
+                            <i class="bi bi-people"></i> Kelola Kepanitiaan
+                        </a>
+                    </div>
+                    
+                    <div class="list-group list-group-flush mb-3" id="detailPanitiaList">
+                        <!-- Kepanitiaan list will be populated dynamically -->
+                    </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <a id="btnDetailDokumen" href="#" class="btn btn-outline-primary px-3">
-                        <i class="bi bi-folder2-open"></i> Dokumen
-                    </a>
-                    <a id="btnDetailAbsensi" href="#" class="btn btn-outline-success px-3">
-                        <i class="bi bi-calendar2-check"></i> Absensi
-                    </a>
+                <div class="modal-footer border-0 d-flex justify-content-between">
+                    <div class="d-flex gap-2">
+                        <a id="btnDetailDokumen" href="#" class="btn btn-outline-primary px-3">
+                            <i class="bi bi-folder2-open"></i> Dokumen
+                        </a>
+                        <a id="btnDetailAbsensi" href="#" class="btn btn-outline-success px-3">
+                            <i class="bi bi-calendar2-check"></i> Absensi
+                        </a>
+                    </div>
                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
@@ -337,6 +407,7 @@
                 : '-';
             document.getElementById('detailTanggalKegiatan').innerText = btn.dataset.tanggal || '-';
             document.getElementById('detailLokasiKegiatan').innerText  = btn.dataset.lokasi  || '-';
+            document.getElementById('detailDanaKegiatan').innerText    = btn.dataset.dana || 'Rp0';
             document.getElementById('detailDeskripsiKegiatan').innerText = btn.dataset.deskripsi || '-';
 
             const progres = parseInt(btn.dataset.progres) || 0;
@@ -346,6 +417,39 @@
 
             document.getElementById('btnDetailDokumen').href = `/dokumen/${id}/folder`;
             document.getElementById('btnDetailAbsensi').href = `/absensi?search=${encodeURIComponent(btn.dataset.nama)}`;
+
+            // Kepanitiaan Kelola URL & Visibility
+            const isPengurus = btn.dataset.isPengurus === 'true';
+            const btnKelola = document.getElementById('btnKelolaKepanitiaan');
+            if (isPengurus) {
+                btnKelola.style.display = 'inline-block';
+                btnKelola.href = btn.dataset.kelolaUrl;
+            } else {
+                btnKelola.style.display = 'none';
+            }
+
+            // Populate Panitia list
+            const panitiaList = document.getElementById('detailPanitiaList');
+            panitiaList.innerHTML = '';
+            
+            try {
+                const panitia = JSON.parse(btn.dataset.panitia || '[]');
+                if (panitia.length === 0) {
+                    panitiaList.innerHTML = '<div class="text-muted small py-2 px-3">Belum ada panitia yang terdaftar.</div>';
+                } else {
+                    panitia.forEach(function(p) {
+                        const item = document.createElement('div');
+                        item.className = 'd-flex justify-content-between align-items-center py-2 px-3 border-bottom';
+                        item.innerHTML = `
+                            <span class="fw-medium">${p.nama}</span>
+                            <span class="text-secondary small">${p.posisi}</span>
+                        `;
+                        panitiaList.appendChild(item);
+                    });
+                }
+            } catch (e) {
+                panitiaList.innerHTML = '<div class="text-danger small py-2 px-3">Gagal memuat kepanitiaan.</div>';
+            }
         }
 
         /* ====== HAPUS ====== */

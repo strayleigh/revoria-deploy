@@ -21,18 +21,10 @@
                         <input type="text" name="nama" class="form-control" value="{{ old('nama', $anggota->nama) }}" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">NIK</label>
-                        <input type="text" name="nik" class="form-control" value="{{ old('nik', $anggota->nik) }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">No. HP <span class="text-danger">*</span></label>
-                        <input type="text" name="no_hp" class="form-control" value="{{ old('no_hp', $anggota->no_hp) }}" required>
-                    </div>
-                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Jabatan <span class="text-danger">*</span></label>
                         <select name="jabatan" class="form-select" required @disabled(!$isAllowed)>
                             <option value="">Pilih Jabatan</option>
-                            @foreach(['Ketua','Wakil Ketua','Sekretaris','Bendahara','Kepala Divisi','Anggota'] as $j)
+                            @foreach(['Ketua','Wakil Ketua','Sekretaris','Bendahara','Kepala Divisi','Penanggung Jawab','Anggota'] as $j)
                                 <option value="{{ $j }}" {{ $selectedJabatan == $j ? 'selected' : '' }}>{{ $j }}</option>
                             @endforeach
                         </select>

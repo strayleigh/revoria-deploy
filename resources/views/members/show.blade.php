@@ -13,12 +13,8 @@
                     <p class="fw-semibold">{{ $anggota->nama }}</p>
                 </div>
                 <div class="col-md-6">
-                    <p class="text-muted small mb-1">NIK</p>
-                    <p class="fw-semibold">{{ $anggota->nik ?: '-' }}</p>
-                </div>
-                <div class="col-md-6">
                     <p class="text-muted small mb-1">No. HP</p>
-                    <p class="fw-semibold">{{ $anggota->no_hp ?: '-' }}</p>
+                    <p class="fw-semibold">{{ $anggota->user->no_hp ?? '-' }}</p>
                 </div>
                 <div class="col-md-6">
                     <p class="text-muted small mb-1">Jabatan</p>

@@ -73,12 +73,19 @@
                         <i class="bi bi-folder"></i> Dokumen
                     </a>
                 </li>
-                @if(auth()->user()->role === 'pengurus' || auth()->user()->role === 'pembina' || auth()->user()->name === 'admin')
+                @php
+                    $user = auth()->user();
+                    $jabatan = strtolower($user->anggota?->jabatan ?? '');
+                    $canSeeKeuangan = $user->name === 'admin' || in_array($jabatan, ['ketua', 'wakil ketua', 'bendahara'], true);
+                @endphp
+                @if($canSeeKeuangan)
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('keuangan.*') ? 'active' : '' }}" href="{{ route('keuangan.index') }}" onclick="window.location.href='{{ route('keuangan.index') }}'; return false;">
                         <i class="bi bi-wallet2"></i> Keuangan
                     </a>
                 </li>
+                @endif
+                @if(auth()->user()->role === 'pengurus' || auth()->user()->role === 'pembina' || auth()->user()->name === 'admin')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}" onclick="window.location.href='{{ route('reports.index') }}'; return false;">
                         <i class="bi bi-file-earmark-text"></i> Laporan
@@ -156,12 +163,19 @@
                             <i class="bi bi-folder"></i> Dokumen
                         </a>
                     </li>
-                    @if(auth()->user()->role === 'pengurus' || auth()->user()->role === 'pembina' || auth()->user()->name === 'admin')
+                    @php
+                        $user = auth()->user();
+                        $jabatan = strtolower($user->anggota?->jabatan ?? '');
+                        $canSeeKeuangan = $user->name === 'admin' || in_array($jabatan, ['ketua', 'wakil ketua', 'bendahara'], true);
+                    @endphp
+                    @if($canSeeKeuangan)
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('keuangan.*') ? 'active' : '' }}" href="{{ route('keuangan.index') }}">
                             <i class="bi bi-wallet2"></i> Keuangan
                         </a>
                     </li>
+                    @endif
+                    @if(auth()->user()->role === 'pengurus' || auth()->user()->role === 'pembina' || auth()->user()->name === 'admin')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
                             <i class="bi bi-file-earmark-text"></i> Laporan

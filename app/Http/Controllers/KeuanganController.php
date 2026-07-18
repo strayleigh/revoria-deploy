@@ -6,8 +6,42 @@ use App\Models\Kegiatan;
 use App\Models\TransaksiKeuangan;
 use Illuminate\Http\Request;
 
-class KeuanganController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+
+class KeuanganController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(function ($request, $next) {
+                $user = auth()->user();
+                $jabatan = strtolower($user->anggota?->jabatan ?? '');
+                $routeAction = $request->route()->getActionMethod();
+
+                // Admin bypasses all checks
+                if ($user->name === 'admin') {
+                    return $next($request);
+                }
+
+                // If read-only index: allow Ketua, Wakil Ketua, Bendahara
+                if ($routeAction === 'index') {
+                    $allowed = in_array($jabatan, ['ketua', 'wakil ketua', 'bendahara'], true);
+                    if (!$allowed) {
+                        abort(403, 'Hanya Ketua, Wakil Ketua, dan Bendahara yang dapat melihat keuangan.');
+                    }
+                } else {
+                    // Write actions (create, store, edit, update, destroy): only Bendahara
+                    if ($jabatan !== 'bendahara') {
+                        abort(403, 'Hanya Bendahara yang dapat mengelola keuangan.');
+                    }
+                }
+
+                return $next($request);
+            }),
+        ];
+    }
+
     public function index(Request $request)
     {
         $transaksis = TransaksiKeuangan::with('kegiatan')
