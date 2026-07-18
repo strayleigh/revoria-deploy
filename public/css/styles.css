@@ -1059,4 +1059,26 @@ html.dark input[type="time"]::-webkit-calendar-picker-indicator {
     }
 }
 
+/* =========================
+   DARK MODE ADJUSTMENTS FOR DOKUMEN
+   ========================= */
+.gdrive-box {
+    background: #f8f9fa;
+}
+
+html.dark .folder-card {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+html.dark .folder-card h5 {
+    color: #f1f5f9 !important;
+}
+
+html.dark .gdrive-box {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+}
+
 

@@ -13,7 +13,7 @@
     <div class="row g-4">
 
         <!-- ================= MAIN: FOLDER LIST ================= -->
-        <div class="col-lg-9">
+        <div class="{{ auth()->user()->role === 'pembina' ? 'col-12' : 'col-lg-9' }}">
             <div class="card border-0 shadow rounded-4">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -94,6 +94,7 @@
             </div>
         </div>
 
+        @if(auth()->user()->role !== 'pembina')
         <!-- ================= SIDEBAR: GOOGLE DRIVE INFO ================= -->
         <div class="col-lg-3">
             <div class="card border-0 shadow rounded-4">
@@ -113,6 +114,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
     </div>
 

@@ -19,7 +19,7 @@
     <div class="row g-4">
 
         <!-- ================= MAIN: INFO FOLDER ================= -->
-        <div class="col-lg-8">
+        <div class="{{ auth()->user()->role === 'pembina' ? 'col-12' : 'col-lg-8' }}">
             <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
 
@@ -46,7 +46,7 @@
                     </div>
 
                     <!-- Info Google Drive -->
-                    <div class="p-3 rounded-3 border mb-4" style="background:#f8f9fa;">
+                    <div class="p-3 rounded-3 border mb-4 gdrive-box">
                         <div class="d-flex align-items-center gap-3">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Drive_logo.png"
                                  width="36" alt="Google Drive">
@@ -104,6 +104,7 @@
             </div>
         </div>
 
+        @if(auth()->user()->role !== 'pembina')
         <!-- ================= SIDEBAR: AKSI CEPAT ================= -->
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4">
@@ -137,6 +138,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
     </div>
 
