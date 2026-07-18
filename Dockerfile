@@ -1,8 +1,9 @@
-FROM php:8.3-apache
+FROM php:8.4-apache
 
-# Install system packages & PHP extensions
+# Install system dependencies dan PHP extensions yang dibutuhkan Laravel
 RUN apt-get update && apt-get install -y \
     git \
+    curl \
     unzip \
     zip \
     libzip-dev \
@@ -10,20 +11,20 @@ RUN apt-get update && apt-get install -y \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql bcmath zip gd \
+    && docker-php-ext-install pdo pdo_mysql bcmath zip gd opcache \
     && rm -rf /var/lib/apt/lists/*
 
-# Enable Apache rewrite and configure MPMs
-RUN a2enmod rewrite \
-    && a2dismod mpm_event mpm_worker || true \
-    && a2enmod mpm_prefork
+# Pastikan hanya mpm_prefork yang aktif (sesuai mod_php)
+RUN a2dismod mpm_event || true \
+    && a2dismod mpm_worker || true \
+    && a2enmod mpm_prefork rewrite headers
 
-# Set document root
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-
+# Set document root ke public/
 RUN sed -ri \
-    -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
-    /etc/apache2/sites-available/*.conf \
+    -e 's!/var/www/html!/var/www/html/public!g' \
+    /etc/apache2/sites-available/000-default.conf \
+    && sed -ri \
+    -e 's!/var/www/html!/var/www/html/public!g' \
     /etc/apache2/apache2.conf
 
 # Install Composer
@@ -31,16 +32,28 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy project
+# Copy project files
 COPY . .
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Buat .env dari .env.example jika belum ada
+RUN cp -n .env.example .env || true
 
-# Permissions
-RUN chown -R www-data:www-data storage bootstrap/cache \
+# Install Composer dependencies (tanpa dev)
+RUN composer install --no-dev --no-interaction --optimize-autoloader --prefer-dist
+
+# Generate APP_KEY jika belum ada di environment
+RUN php artisan key:generate --force
+
+# Cache route dan config untuk production
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 80
 
-CMD ["/bin/sh", "-c", "a2dismod mpm_event mpm_worker || true && exec apache2-foreground"]
+CMD ["apache2-foreground"]
