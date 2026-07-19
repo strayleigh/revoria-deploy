@@ -57,6 +57,13 @@ class ProfileController extends Controller
             unset($data['name']);
         }
 
+        // Simpan no_hp secara terpisah ke anggota (jika ada) dan hapus dari data user
+        $noHp = null;
+        if (array_key_exists('no_hp', $data)) {
+            $noHp = $data['no_hp'];
+            unset($data['no_hp']);
+        }
+
         $user->fill($data);
 
         if ($user->isDirty('email')) {
@@ -65,11 +72,11 @@ class ProfileController extends Controller
 
         $user->save();
 
-        if ($request->has('no_hp')) {
+        if ($noHp !== null) {
             $anggota = $user->anggota;
             if ($anggota) {
                 $anggota->update([
-                    'no_hp' => $request->no_hp,
+                    'no_hp' => $noHp,
                 ]);
             }
         }
