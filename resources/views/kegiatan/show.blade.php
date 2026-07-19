@@ -42,7 +42,18 @@
                 <a href="{{ route('absensi.index') }}?search={{ urlencode($kegiatan->nama_kegiatan) }}" class="btn btn-outline-success px-4">
                     <i class="bi bi-calendar2-check"></i> Absensi
                 </a>
-                @if(auth()->user()?->isKetua())
+                @php
+                    $user = auth()->user();
+                    $jabatan = strtolower($user?->anggota?->jabatan ?? '');
+                    $isPanitiaEditAuthorized = $kegiatan->panitia()
+                        ->where('id_anggota', $user?->anggota_id)
+                        ->whereIn('posisi', ['Ketua Pelaksana', 'Sekretaris'])
+                        ->exists();
+                    $canEdit = $user?->name === 'admin' 
+                        || in_array($jabatan, ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'], true) 
+                        || $isPanitiaEditAuthorized;
+                @endphp
+                @if($canEdit)
                     <a href="{{ route('kegiatan.edit', $kegiatan) }}" class="btn btn-warning px-4">
                         <i class="bi bi-pencil"></i> Edit
                     </a>

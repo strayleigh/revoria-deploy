@@ -23,8 +23,9 @@ class KegiatanController extends Controller
     {
         $user = auth()->user();
         $jabatan = strtolower($user->anggota?->jabatan ?? '');
-        if ($user->name !== 'admin' && !in_array($jabatan, ['ketua', 'sekretaris'], true)) {
-            abort(403, 'Akses ditolak. Hanya Ketua dan Sekretaris yang dapat membuat kegiatan.');
+        $allowed = ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'];
+        if ($user->name !== 'admin' && !in_array($jabatan, $allowed, true)) {
+            abort(403, 'Akses ditolak. Hanya Pengurus (Ketua, Wakil Ketua, Bendahara, Sekretaris) yang dapat membuat kegiatan.');
         }
         return view('kegiatan.create');
     }
@@ -33,8 +34,9 @@ class KegiatanController extends Controller
     {
         $user = auth()->user();
         $jabatan = strtolower($user->anggota?->jabatan ?? '');
-        if ($user->name !== 'admin' && !in_array($jabatan, ['ketua', 'sekretaris'], true)) {
-            abort(403, 'Akses ditolak. Hanya Ketua dan Sekretaris yang dapat membuat kegiatan.');
+        $allowed = ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'];
+        if ($user->name !== 'admin' && !in_array($jabatan, $allowed, true)) {
+            abort(403, 'Akses ditolak. Hanya Pengurus (Ketua, Wakil Ketua, Bendahara, Sekretaris) yang dapat membuat kegiatan.');
         }
 
         $request->validate([
@@ -71,10 +73,11 @@ class KegiatanController extends Controller
             ->whereIn('posisi', ['Ketua Pelaksana', 'Sekretaris'])
             ->exists();
 
-        $allowed = $isPanitiaEditAuthorized || in_array($jabatan, ['ketua', 'sekretaris'], true);
+        $isBph = in_array($jabatan, ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'], true);
+        $allowed = $isPanitiaEditAuthorized || $isBph;
 
         if (!$allowed) {
-            abort(403, 'Akses ditolak. Hanya Ketua, Sekretaris, serta Ketua Pelaksana & Sekretaris kepanitiaan kegiatan ini yang dapat mengedit kegiatan.');
+            abort(403, 'Akses ditolak. Hanya Pengurus, serta Ketua Pelaksana & Sekretaris kepanitiaan kegiatan ini yang dapat mengedit kegiatan.');
         }
 
         return view('kegiatan.edit', compact('kegiatan'));
@@ -92,10 +95,11 @@ class KegiatanController extends Controller
                 ->whereIn('posisi', ['Ketua Pelaksana', 'Sekretaris'])
                 ->exists();
 
-            $allowed = $isPanitiaEditAuthorized || in_array($jabatan, ['ketua', 'sekretaris'], true);
+            $isBph = in_array($jabatan, ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'], true);
+            $allowed = $isPanitiaEditAuthorized || $isBph;
 
             if (!$allowed) {
-                abort(403, 'Akses ditolak. Hanya Ketua, Sekretaris, serta Ketua Pelaksana & Sekretaris kepanitiaan kegiatan ini yang dapat mengedit kegiatan.');
+                abort(403, 'Akses ditolak. Hanya Pengurus, serta Ketua Pelaksana & Sekretaris kepanitiaan kegiatan ini yang dapat mengedit kegiatan.');
             }
         }
 
@@ -117,8 +121,9 @@ class KegiatanController extends Controller
     {
         $user = auth()->user();
         $jabatan = strtolower($user->anggota?->jabatan ?? '');
-        if ($user->name !== 'admin' && !in_array($jabatan, ['ketua', 'sekretaris'], true)) {
-            abort(403, 'Akses ditolak. Hanya Ketua dan Sekretaris yang dapat menghapus kegiatan.');
+        $allowed = ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'];
+        if ($user->name !== 'admin' && !in_array($jabatan, $allowed, true)) {
+            abort(403, 'Akses ditolak. Hanya Pengurus (Ketua, Wakil Ketua, Bendahara, Sekretaris) yang dapat menghapus kegiatan.');
         }
 
         $kegiatan->delete();

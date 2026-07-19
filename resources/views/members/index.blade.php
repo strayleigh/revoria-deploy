@@ -1,6 +1,6 @@
 @php
     $currentUserJabatan = strtolower(auth()->user()->anggota?->jabatan ?? '');
-    $canManage = in_array($currentUserJabatan, ['wakil ketua', 'sekretaris'], true) || auth()->user()->name === 'admin';
+    $canManage = in_array($currentUserJabatan, ['sekretaris'], true) || auth()->user()->name === 'admin';
 @endphp
 <x-sidebar title="Anggota">
 

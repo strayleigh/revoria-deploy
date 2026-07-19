@@ -1,6 +1,6 @@
 @php
     $currentUserJabatan = strtolower(auth()->user()->anggota?->jabatan ?? '');
-    $isAllowed = in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris'], true) || auth()->user()->name === 'admin';
+    $isAllowed = in_array($currentUserJabatan, ['ketua', 'sekretaris'], true) || auth()->user()->name === 'admin';
     $selectedJabatan = old('jabatan', $anggota->jabatan) ?: 'Anggota';
 @endphp
 <x-sidebar title="Edit Anggota">
@@ -30,7 +30,7 @@
                         </select>
                         @if(!$isAllowed)
                             <input type="hidden" name="jabatan" value="{{ $selectedJabatan }}">
-                            <small class="text-muted mt-1 d-block"><i class="bi bi-info-circle"></i> Hanya Ketua, Wakil Ketua, Sekretaris, dan Admin yang dapat mengubah jabatan.</small>
+                            <small class="text-muted mt-1 d-block"><i class="bi bi-info-circle"></i> Hanya Ketua, Sekretaris, dan Admin yang dapat mengubah jabatan.</small>
                         @endif
                     </div>
                     <div class="col-md-6">

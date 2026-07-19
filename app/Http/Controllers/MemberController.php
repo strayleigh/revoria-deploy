@@ -28,11 +28,11 @@ class MemberController extends Controller implements HasMiddleware
                 return $next($request);
             }),
 
-            // Otorisasi mengelola (write): Hanya Ketua, Wakil Ketua, Sekretaris, dan Admin
+            // Otorisasi mengelola (write): Hanya Sekretaris dan Admin
             new Middleware(function ($request, $next) {
                 $user = auth()->user();
                 $currentUserJabatan = strtolower($user->anggota?->jabatan ?? '');
-                $isWriteAuthorized = in_array($currentUserJabatan, ['wakil ketua', 'sekretaris'], true) || $user->name === 'admin';
+                $isWriteAuthorized = in_array($currentUserJabatan, ['sekretaris'], true) || $user->name === 'admin';
 
                 if (!$isWriteAuthorized) {
                     abort(403, 'Anda tidak memiliki hak akses untuk mengelola data anggota.');
@@ -145,9 +145,9 @@ class MemberController extends Controller implements HasMiddleware
 
         $data = $request->all();
 
-        // Cek otorisasi untuk mengubah jabatan (Wakil Ketua, Sekretaris, atau user Admin)
+        // Cek otorisasi untuk mengubah jabatan (Sekretaris atau user Admin)
         $currentUserJabatan = strtolower(auth()->user()->anggota?->jabatan ?? '');
-        $allowedToChangeJabatan = in_array($currentUserJabatan, ['wakil ketua', 'sekretaris'], true) || auth()->user()->name === 'admin';
+        $allowedToChangeJabatan = in_array($currentUserJabatan, ['sekretaris'], true) || auth()->user()->name === 'admin';
 
         if (!$allowedToChangeJabatan) {
             // Paksa jabatan tetap menggunakan nilai yang lama di database

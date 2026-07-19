@@ -134,11 +134,11 @@
                                     ->isNotEmpty();
                                 
                                 $canEdit = $user?->name === 'admin' 
-                                    || in_array($jabatan, ['ketua', 'sekretaris'], true) 
+                                    || in_array($jabatan, ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'], true) 
                                     || $isPanitiaEditAuthorized;
                                     
                                 $canDelete = $user?->name === 'admin' 
-                                    || in_array($jabatan, ['ketua', 'sekretaris'], true);
+                                    || in_array($jabatan, ['ketua', 'wakil ketua', 'bendahara', 'sekretaris'], true);
                             @endphp
                             @if($canEdit || $canDelete)
                                 <div class="d-flex gap-2">
