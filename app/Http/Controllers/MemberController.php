@@ -94,7 +94,7 @@ class MemberController extends Controller implements HasMiddleware
 
     public function assignUser(Request $request, Anggota $member)
     {
-        $request->validate(['user_id' => 'nullable|exists:users,id']);
+        $request->validate(['user_id' => 'nullable|exists:users,id_user']);
 
         // Lepas user lama yang terhubung ke anggota ini, reset rolenya kembali ke 'anggota'
         $oldUser = User::where('anggota_id', $member->id_anggota)->first();

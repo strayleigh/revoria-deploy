@@ -16,6 +16,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     protected $table = 'users';
+    protected $primaryKey = 'id_user';
 
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;

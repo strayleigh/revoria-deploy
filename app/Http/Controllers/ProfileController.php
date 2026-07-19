@@ -18,7 +18,7 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $anggotas = !in_array($request->user()->role, ['pengurus'], true) || $request->user()->anggota_id
-            ? Anggota::whereDoesntHave('user', fn($q) => $q->where('id', '!=', $request->user()->id))
+            ? Anggota::whereDoesntHave('user', fn($q) => $q->where('id_user', '!=', $request->user()->id_user))
                 ->orWhere('id_anggota', $request->user()->anggota_id)
                 ->orderBy('nama')->get()
             : collect();
