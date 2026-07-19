@@ -47,8 +47,8 @@
                         </select>
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-semibold">Alamat <span class="text-danger">*</span></label>
-                        <textarea name="alamat" class="form-control" rows="3" required>{{ old('alamat') }}</textarea>
+                        <label class="form-label fw-semibold">Alamat</label>
+                        <textarea name="alamat" class="form-control" rows="3">{{ old('alamat') }}</textarea>
                     </div>
                 </div>
                 <div class="mt-4 d-flex gap-2">

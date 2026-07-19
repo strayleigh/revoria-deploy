@@ -81,33 +81,33 @@ body {
 ========================= */
 .summary-card {
     background: white;
-    border-radius: 26px; /* 1.5x larger border radius */
-    padding: 38px 28px; /* 1.5x larger padding */
+    border-radius: 20px;
+    padding: 30px 24px;
     text-align: center;
     box-shadow: 0 8px 25px rgba(0,0,0,.08);
     transition: .3s;
 }
 
 .summary-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
 }
 
 .summary-card h3 {
-    font-size: 38px !important; /* 1.5x larger nominal */
+    font-size: 35px !important;
     font-weight: 800;
 }
 
 .summary-card span {
-    font-size: 18px !important; /* 1.5x larger title */
+    font-size: 17px !important;
 }
 
 .summary-card small {
-    font-size: 16px !important; /* 1.5x larger subtext */
+    font-size: 15px !important;
 }
 
 .icon {
-    width: 70px;
-    height: 70px;
+    width: 50px;
+    height: 50px;
     margin: auto;
     border-radius: 20px;
     display: flex;
@@ -804,13 +804,13 @@ html.dark .card-footer {
 
 /* Ikon Bersih & Simpel untuk Summary Cards */
 .icon-clean {
-    width: 72px !important; /* 1.5x larger icon size */
-    height: 72px !important;
-    border-radius: 18px !important;
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 14px !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 32px !important;
+    font-size: 26px !important;
     transition: all 0.3s ease;
 }
 
@@ -1079,6 +1079,35 @@ html.dark .folder-card h5 {
 html.dark .gdrive-box {
     background-color: #1e293b !important;
     border-color: #334155 !important;
+}
+
+/* Dark Mode Close/Tutup/Batal Buttons red theme */
+html.dark .btn-close {
+    filter: invert(27%) sepia(91%) saturate(5437%) hue-rotate(346deg) brightness(97%) contrast(92%) !important;
+}
+
+html.dark button[data-bs-dismiss="modal"],
+html.dark button[data-bs-dismiss="offcanvas"],
+html.dark .modal-footer .btn-outline-secondary,
+html.dark .modal-footer .btn-secondary,
+html.dark a.btn-outline-secondary[href*="index"] {
+    border-color: #dc3545 !important;
+    color: #dc3545 !important;
+}
+
+html.dark button[data-bs-dismiss="modal"]:hover,
+html.dark button[data-bs-dismiss="offcanvas"]:hover,
+html.dark .modal-footer .btn-outline-secondary:hover,
+html.dark .modal-footer .btn-secondary:hover,
+html.dark a.btn-outline-secondary[href*="index"]:hover {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+/* Card Divider White in Dark Mode */
+html.dark .card-divider {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    opacity: 1 !important;
 }
 
 

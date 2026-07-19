@@ -109,15 +109,18 @@
                          data-bs-target="#sesiAbsensiModal"
                          onclick="bukaSesiAbsensi(this)"
                      @else
-                         @if($kegiatan->status === 'berlangsung')
+                         @if($hasAbsen)
+                             onclick="alert('Anda sudah mencatat kehadiran untuk kegiatan ini.')"
+                         @elseif($kegiatan->status === 'berlangsung')
                              onclick="window.location.href='{{ route('absensi.create') }}?kode_kegiatan={{ $kegiatan->kode_kegiatan }}'"
                          @else
                              onclick="alert('Absensi hanya dapat dilakukan untuk kegiatan yang sedang berlangsung.')"
                          @endif
                      @endif
-                     data-id="{{ $kegiatan->kode_kegiatan }}"
-                     data-nama="{{ $kegiatan->nama_kegiatan }}"
-                     data-status="{{ $kegiatan->status }}">
+                      data-id="{{ $kegiatan->kode_kegiatan }}"
+                      data-nama="{{ $kegiatan->nama_kegiatan }}"
+                      data-status="{{ $kegiatan->status }}"
+                      data-has-absensi="{{ $hasAbsen ? 'true' : 'false' }}">
                      
 
                     
@@ -144,7 +147,7 @@
                                     <div class="d-flex flex-column gap-1 mt-2">
                                         <small class="text-secondary d-flex align-items-center small">
                                             <i class="bi bi-calendar3 text-primary me-2"></i>
-                                            <span>{{ $kegiatan->tanggal?->format('d M Y') }}</span>
+                                            <span>{{ $kegiatan->tanggal_mulai?->format('d M Y') }}</span>
                                         </small>
                                         @if($kegiatan->lokasi)
                                             <small class="text-secondary d-flex align-items-center small text-truncate">
@@ -202,6 +205,7 @@
                                         <th>Nama Anggota</th>
                                         <th>Status</th>
                                         <th>Waktu</th>
+                                        <th>Keterangan</th>
                                         <th id="headerAksi">Aksi</th>
                                     </tr>
                                 </thead>
@@ -234,8 +238,13 @@
 
     <script>
         let kegiatanAktifId = '';
+        @php
+            $user = auth()->user();
+            $jabVal = strtolower($user?->anggota?->jabatan ?? '');
+            $canManageAbsensi = $user?->name === 'admin' || in_array($jabVal, ['ketua', 'wakil ketua', 'sekretaris'], true);
+        @endphp
         const isKetua = {{ auth()->user()?->isKetua() ? 'true' : 'false' }};
-        const isAdmin = {{ auth()->user()?->name === 'admin' ? 'true' : 'false' }};
+        const isAdmin = {{ $canManageAbsensi ? 'true' : 'false' }};
         const csrfToken = '{{ csrf_token() }}';
 
         function bukaSesiAbsensi(card) {
@@ -255,11 +264,12 @@
                  btnInput.href = '{{ route('absensi.create') }}?kode_kegiatan=' + id;
              }
  
-             // Tampilkan/sembunyikan tombol input absensi berdasarkan status kegiatan
+             // Tampilkan/sembunyikan tombol input absensi berdasarkan status kegiatan dan status absensi user
              const status = card.dataset.status;
+             const hasAbsen = card.dataset.hasAbsensi === 'true';
              const wrapperInput = document.getElementById('modalInputAbsensiWrapper');
              if (wrapperInput) {
-                 if (status === 'berlangsung' || isAdmin) {
+                 if ((status === 'berlangsung' || isAdmin) && !hasAbsen) {
                      wrapperInput.classList.remove('d-none');
                  } else {
                      wrapperInput.classList.add('d-none');
@@ -317,7 +327,7 @@
             // Tampilkan loader sementara memuat data
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="${isAdmin ? 5 : 4}" class="text-muted py-4">
+                    <td colspan="${isAdmin ? 6 : 5}" class="text-muted py-4">
                         <div class="spinner-border spinner-border-sm me-2 text-primary"></div>
                         Mengambil data absensi...
                     </td>
@@ -332,7 +342,7 @@
                     if (data.length === 0) {
                         tbody.innerHTML = `
                             <tr>
-                                <td colspan="${isAdmin ? 5 : 4}" class="text-muted py-4">Belum ada anggota yang melakukan absensi pada kegiatan ini.</td>
+                                <td colspan="${isAdmin ? 6 : 5}" class="text-muted py-4">Belum ada anggota yang melakukan absensi pada kegiatan ini.</td>
                             </tr>
                         `;
                         return;
@@ -374,6 +384,7 @@
                                 <td class="text-start fw-semibold">${nama}</td>
                                 <td><span class="badge ${badgeColor}">${row.status_hadir}</span></td>
                                 <td>${waktu}</td>
+                                <td>${row.keterangan || '-'}</td>
                                 ${actionCell}
                             </tr>
                         `;
@@ -383,7 +394,7 @@
                     console.error(err);
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="${isAdmin ? 5 : 4}" class="text-danger py-4">Gagal memuat data absensi. Silakan coba lagi.</td>
+                            <td colspan="${isAdmin ? 6 : 5}" class="text-danger py-4">Gagal memuat data absensi. Silakan coba lagi.</td>
                         </tr>
                     `;
                 });

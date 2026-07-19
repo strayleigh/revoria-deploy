@@ -83,7 +83,7 @@
                         <div class="d-flex flex-column gap-2.5 mb-4 p-3 rounded-4" style="background-color: rgba(0, 0, 0, 0.025);">
                             <div class="d-flex align-items-center text-secondary small">
                                 <i class="bi bi-calendar3 text-primary me-2"></i>
-                                <span>{{ $kegiatan->tanggal?->format('d M Y') ?: '-' }}</span>
+                                <span>{{ $kegiatan->tanggal_mulai?->format('d M Y, H:i') ?: '-' }} s/d {{ $kegiatan->tanggal_selesai?->format('d M Y, H:i') ?: '-' }}</span>
                             </div>
                             <div class="d-flex align-items-center text-secondary small">
                                 <i class="bi bi-geo-alt text-primary me-2"></i>
@@ -108,13 +108,26 @@
                                     onclick="bukaDetailKegiatan(this)"
                                     data-id="{{ $kegiatan->kode_kegiatan }}"
                                     data-nama="{{ $kegiatan->nama_kegiatan }}"
-                                    data-tanggal="{{ $kegiatan->tanggal?->format('d M Y') }}"
+                                    data-tanggal-mulai="{{ $kegiatan->tanggal_mulai?->format('d M Y, H:i') }}"
+                                    data-tanggal-selesai="{{ $kegiatan->tanggal_selesai?->format('d M Y, H:i') }}"
+                                    data-tanggal-mulai-raw="{{ $kegiatan->tanggal_mulai?->format('Y-m-d\TH:i') }}"
+                                    data-tanggal-selesai-raw="{{ $kegiatan->tanggal_selesai?->format('Y-m-d\TH:i') }}"
                                     data-lokasi="{{ $kegiatan->lokasi }}"
                                     data-deskripsi="{{ $kegiatan->deskripsi }}"
                                     data-status="{{ $kegiatan->status }}"
                                     data-progres="{{ $kegiatan->progres ?? 0 }}"
                                     data-dana="Rp{{ number_format($kegiatan->transaksi->where('jenis_transaksi', 'pemasukan')->sum('nominal'), 0, ',', '.') }}"
                                     data-panitia="{{ json_encode($kegiatan->panitia->map(fn($p) => ['nama' => $p->anggota?->nama ?? '-', 'posisi' => $p->posisi])) }}"
+                                    data-persiapan="{{ json_encode($kegiatan->persiapan ?? [
+                                        ['name' => 'Proposal', 'checked' => false],
+                                        ['name' => 'Surat Permohonan', 'checked' => false],
+                                        ['name' => 'Surat Peminjaman', 'checked' => false],
+                                        ['name' => 'Lokasi', 'checked' => false],
+                                        ['name' => 'Keuangan', 'checked' => false],
+                                        ['name' => 'Alat-alat', 'checked' => false],
+                                        ['name' => 'Konsumsi', 'checked' => false],
+                                        ['name' => 'LPJ', 'checked' => false],
+                                    ]) }}"
                                     @php
                                         $user = auth()->user();
                                         $jabatanVal = strtolower($user?->anggota?->jabatan ?? '');
@@ -201,9 +214,14 @@
                                        id="inputNamaKegiatan" placeholder="Masukkan nama kegiatan" required>
                             </div>
                             <div class="col-lg-6">
-                                <label class="form-label">Tanggal <span class="text-danger">*</span></label>
-                                <input type="date" name="tanggal" class="form-control"
-                                       id="inputTanggalKegiatan" required>
+                                <label class="form-label">Tanggal Mulai <span class="text-danger">*</span></label>
+                                <input type="datetime-local" name="tanggal_mulai" class="form-control"
+                                       id="inputTanggalMulaiKegiatan" required>
+                            </div>
+                            <div class="col-lg-6">
+                                <label class="form-label">Tanggal Selesai <span class="text-danger">*</span></label>
+                                <input type="datetime-local" name="tanggal_selesai" class="form-control"
+                                       id="inputTanggalSelesaiKegiatan" required>
                             </div>
                             <div class="col-lg-6">
                                 <label class="form-label">Lokasi</label>
@@ -225,30 +243,7 @@
                                           placeholder="Masukkan deskripsi kegiatan"></textarea>
                             </div>
 
-                            <!-- ========== CHECKLIST PERSIAPAN ========== -->
-                            <div class="col-lg-12">
-                                <label class="form-label d-flex justify-content-between">
-                                    <span>Checklist Persiapan</span>
-                                    <span class="fw-bold text-primary" id="progresValue">0%</span>
-                                </label>
-                                <input type="hidden" name="progres" id="inputProgres" value="0">
-                                <div class="progress mb-2" style="height:8px;">
-                                    <div class="progress-bar" id="progresBarForm" role="progressbar" style="width:0%"></div>
-                                </div>
-                                <div class="checklist-box">
-                                    <div class="row g-2">
-                                        @foreach(['Proposal','Surat Permohonan','Surat Peminjaman','Lokasi','Keuangan','Alat-alat','Konsumsi','LPJ'] as $item)
-                                            <div class="col-lg-6">
-                                                <div class="form-check">
-                                                    <input class="form-check-input checklist-item" type="checkbox"
-                                                           id="cek{{ Str::slug($item) }}" value="{{ $item }}">
-                                                    <label class="form-check-label" for="cek{{ Str::slug($item) }}">{{ $item }}</label>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
+                            <input type="hidden" name="progres" value="0">
                         </div>
                     </div>
                     <div class="modal-footer border-0">
@@ -275,8 +270,12 @@
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-lg-6">
-                            <div class="detail-label"><i class="bi bi-calendar3"></i> Tanggal</div>
-                            <div class="detail-value" id="detailTanggalKegiatan">-</div>
+                            <div class="detail-label"><i class="bi bi-calendar3"></i> Tanggal Mulai</div>
+                            <div class="detail-value" id="detailTanggalMulaiKegiatan">-</div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="detail-label"><i class="bi bi-calendar3"></i> Tanggal Selesai</div>
+                            <div class="detail-value" id="detailTanggalSelesaiKegiatan">-</div>
                         </div>
                         <div class="col-lg-6">
                             <div class="detail-label"><i class="bi bi-geo-alt"></i> Lokasi</div>
@@ -296,6 +295,12 @@
                         <div class="col-lg-12">
                             <div class="detail-label">Deskripsi</div>
                             <div class="detail-value" id="detailDeskripsiKegiatan">-</div>
+                        </div>
+                        <div class="col-lg-12 mt-3">
+                            <div class="detail-label">Checklist Persiapan</div>
+                            <div class="row g-2 p-3 border rounded-3 bg-light bg-opacity-50 mt-1" id="detailChecklistList">
+                                <!-- Will be populated dynamically -->
+                            </div>
                         </div>
                     </div>
 
@@ -353,6 +358,33 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tMulai = document.getElementById('inputTanggalMulaiKegiatan');
+            const tSelesai = document.getElementById('inputTanggalSelesaiKegiatan');
+            const statusSelect = document.getElementById('inputStatusKegiatan');
+
+            function autoUpdateStatus() {
+                if (!tMulai.value || !tSelesai.value) return;
+
+                const now = new Date();
+                const start = new Date(tMulai.value);
+                const end = new Date(tSelesai.value);
+
+                if (now < start) {
+                    statusSelect.value = 'terjadwal';
+                } else if (now >= start && now <= end) {
+                    statusSelect.value = 'berlangsung';
+                } else if (now > end) {
+                    statusSelect.value = 'selesai';
+                }
+            }
+
+            if (tMulai && tSelesai && statusSelect) {
+                tMulai.addEventListener('change', autoUpdateStatus);
+                tSelesai.addEventListener('change', autoUpdateStatus);
+            }
+        });
+
         /* ====== CHECKLIST PROGRES ====== */
         function hitungProgres() {
             const items    = document.querySelectorAll('.checklist-item');
@@ -387,7 +419,8 @@
                 '<input type="hidden" name="_method" value="PUT">';
 
             document.getElementById('inputNamaKegiatan').value     = btn.dataset.nama;
-            document.getElementById('inputTanggalKegiatan').value  = btn.dataset.tanggal;
+            document.getElementById('inputTanggalMulaiKegiatan').value   = btn.dataset.tanggalMulaiRaw;
+            document.getElementById('inputTanggalSelesaiKegiatan').value = btn.dataset.tanggalSelesaiRaw;
             document.getElementById('inputLokasiKegiatan').value   = btn.dataset.lokasi;
             document.getElementById('inputDeskripsiKegiatan').value= btn.dataset.deskripsi;
             document.getElementById('inputStatusKegiatan').value   = btn.dataset.status;
@@ -405,7 +438,8 @@
             document.getElementById('detailStatusKegiatan').innerText  = btn.dataset.status
                 ? btn.dataset.status.charAt(0).toUpperCase() + btn.dataset.status.slice(1)
                 : '-';
-            document.getElementById('detailTanggalKegiatan').innerText = btn.dataset.tanggal || '-';
+            document.getElementById('detailTanggalMulaiKegiatan').innerText = btn.dataset.tanggalMulai || '-';
+            document.getElementById('detailTanggalSelesaiKegiatan').innerText = btn.dataset.tanggalSelesai || '-';
             document.getElementById('detailLokasiKegiatan').innerText  = btn.dataset.lokasi  || '-';
             document.getElementById('detailDanaKegiatan').innerText    = btn.dataset.dana || 'Rp0';
             document.getElementById('detailDeskripsiKegiatan').innerText = btn.dataset.deskripsi || '-';
@@ -449,6 +483,42 @@
                 }
             } catch (e) {
                 panitiaList.innerHTML = '<div class="text-danger small py-2 px-3">Gagal memuat kepanitiaan.</div>';
+            }
+
+            // Populate Checklist list
+            const checklistList = document.getElementById('detailChecklistList');
+            checklistList.innerHTML = '';
+            
+            try {
+                const persiapan = JSON.parse(btn.dataset.persiapan || '[]');
+                if (persiapan.length === 0) {
+                    checklistList.innerHTML = '<div class="col-12 text-center text-muted small py-2">Tidak ada item persiapan.</div>';
+                } else {
+                    persiapan.forEach(function(item) {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-6';
+                        
+                        const inner = document.createElement('div');
+                        inner.className = 'd-flex align-items-center gap-2 py-1';
+                        
+                        if (item.checked) {
+                            inner.innerHTML = `
+                                <i class="bi bi-check-circle-fill text-success" style="font-size: 16px;"></i>
+                                <span class="text-decoration-line-through text-muted small">${item.name}</span>
+                            `;
+                        } else {
+                            inner.innerHTML = `
+                                <i class="bi bi-circle text-muted" style="font-size: 16px;"></i>
+                                <span class="small fw-semibold text-dark">${item.name}</span>
+                            `;
+                        }
+                        
+                        col.appendChild(inner);
+                        checklistList.appendChild(col);
+                    });
+                }
+            } catch (e) {
+                checklistList.innerHTML = '<div class="col-12 text-center text-danger small py-2">Gagal memuat checklist.</div>';
             }
         }
 

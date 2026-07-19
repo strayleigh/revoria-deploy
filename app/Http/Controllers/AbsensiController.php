@@ -35,10 +35,11 @@ class AbsensiController extends Controller implements HasMiddleware
                     }
                 }
 
-                // edit, update, destroy: Hanya Sekretaris
+                // edit, update, destroy: Sekretaris, Ketua, Wakil Ketua
                 if (in_array($routeAction, ['edit', 'update', 'destroy'], true)) {
-                    if ($jabatan !== 'sekretaris') {
-                        abort(403, 'Hanya Sekretaris yang dapat mengelola absensi.');
+                    $allowed = in_array($jabatan, ['sekretaris', 'ketua', 'wakil ketua'], true);
+                    if (!$allowed) {
+                        abort(403, 'Hanya Ketua, Wakil Ketua, dan Sekretaris yang dapat mengelola data absensi.');
                     }
                 }
 
@@ -53,7 +54,7 @@ class AbsensiController extends Controller implements HasMiddleware
         $kegiatans = Kegiatan::query()
             ->when($request->search, fn($q, $s) => $q->whereRaw('LOWER(nama_kegiatan) LIKE ?', ["%" . strtolower($s) . "%"]))
             ->when($status, fn($q, $s) => $q->where('status', $s))
-            ->orderByDesc('tanggal')
+            ->orderByDesc('tanggal_mulai')
             ->get();
 
         // Ringkasan absensi milik user yang login
@@ -76,7 +77,7 @@ class AbsensiController extends Controller implements HasMiddleware
 
     public function create()
     {
-        $kegiatans = Kegiatan::orderByDesc('tanggal')->get();
+        $kegiatans = Kegiatan::orderByDesc('tanggal_mulai')->get();
         $anggota = auth()->user()->anggota;
 
         return view('absensi.create', compact('kegiatans', 'anggota'));
@@ -89,6 +90,7 @@ class AbsensiController extends Controller implements HasMiddleware
             'tanggal_absensi' => 'required|date',
             'waktu_absen'     => 'nullable|date_format:H:i',
             'status_hadir'    => 'required|in:hadir,tidak hadir,izin,sakit',
+            'keterangan'      => 'nullable|string',
         ]);
 
         $anggota = auth()->user()->anggota;
@@ -126,6 +128,7 @@ class AbsensiController extends Controller implements HasMiddleware
             'tanggal_absensi' => $request->tanggal_absensi,
             'waktu_absen'     => $request->waktu_absen,
             'status_hadir'    => $request->status_hadir,
+            'keterangan'      => $request->keterangan,
         ]);
 
         return redirect()->route('absensi.index')->with('success', 'Absensi berhasil dicatat.');
@@ -135,11 +138,12 @@ class AbsensiController extends Controller implements HasMiddleware
     {
         $user = auth()->user();
         $jabatan = strtolower($user->anggota?->jabatan ?? '');
-        if ($user->name !== 'admin' && $jabatan !== 'sekretaris') {
-            abort(403, 'Hanya Sekretaris dan Admin yang dapat mengelola data absensi.');
+        $allowed = $user->name === 'admin' || in_array($jabatan, ['sekretaris', 'ketua', 'wakil ketua'], true);
+        if (!$allowed) {
+            abort(403, 'Hanya Sekretaris, Ketua, Wakil Ketua, dan Admin yang dapat mengelola data absensi.');
         }
 
-        $kegiatans = Kegiatan::orderByDesc('tanggal')->get();
+        $kegiatans = Kegiatan::orderByDesc('tanggal_mulai')->get();
 
         return view('absensi.edit', compact('absensi', 'kegiatans'));
     }
@@ -148,8 +152,9 @@ class AbsensiController extends Controller implements HasMiddleware
     {
         $user = auth()->user();
         $jabatan = strtolower($user->anggota?->jabatan ?? '');
-        if ($user->name !== 'admin' && $jabatan !== 'sekretaris') {
-            abort(403, 'Hanya Sekretaris dan Admin yang dapat mengelola data absensi.');
+        $allowed = $user->name === 'admin' || in_array($jabatan, ['sekretaris', 'ketua', 'wakil ketua'], true);
+        if (!$allowed) {
+            abort(403, 'Hanya Sekretaris, Ketua, Wakil Ketua, dan Admin yang dapat mengelola data absensi.');
         }
 
         $request->validate([
@@ -157,9 +162,10 @@ class AbsensiController extends Controller implements HasMiddleware
             'tanggal_absensi' => 'required|date',
             'waktu_absen'     => 'nullable|date_format:H:i',
             'status_hadir'    => 'required|in:hadir,tidak hadir,izin,sakit',
+            'keterangan'      => 'nullable|string',
         ]);
 
-        $absensi->update($request->only(['kode_kegiatan', 'tanggal_absensi', 'waktu_absen', 'status_hadir']));
+        $absensi->update($request->only(['kode_kegiatan', 'tanggal_absensi', 'waktu_absen', 'status_hadir', 'keterangan']));
 
         return redirect()->route('absensi.index')->with('success', 'Absensi berhasil diperbarui.');
     }
@@ -168,8 +174,9 @@ class AbsensiController extends Controller implements HasMiddleware
     {
         $user = auth()->user();
         $jabatan = strtolower($user->anggota?->jabatan ?? '');
-        if ($user->name !== 'admin' && $jabatan !== 'sekretaris') {
-            abort(403, 'Hanya Sekretaris dan Admin yang dapat mengelola data absensi.');
+        $allowed = $user->name === 'admin' || in_array($jabatan, ['sekretaris', 'ketua', 'wakil ketua'], true);
+        if (!$allowed) {
+            abort(403, 'Hanya Sekretaris, Ketua, Wakil Ketua, dan Admin yang dapat mengelola data absensi.');
         }
 
         $absensi->delete();

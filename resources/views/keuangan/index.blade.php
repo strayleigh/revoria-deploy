@@ -19,21 +19,9 @@
                     <div class="icon-clean icon-orange mb-3 mx-auto">
                         <i class="bi bi-wallet2"></i>
                     </div>
-                    <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Total Kas</span>
+                    <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Total Keseluruhan</span>
                     <h3 class="fw-bold mb-2">Rp{{ number_format($saldo, 0, ',', '.') }}</h3>
                     <small class="text-muted" style="font-size: 11px;">Klik untuk melihat semua</small>
-                </div>
-            </a>
-        </div>
-        <div class="col-4 col-lg-4">
-            <a href="{{ route('keuangan.index', array_merge(request()->except(['page']), ['jenis' => 'pengeluaran'])) }}" class="text-decoration-none text-dark d-block">
-                <div class="summary-card h-100 {{ request('jenis') == 'pengeluaran' ? 'border border-danger border-3 shadow-sm bg-danger-subtle bg-opacity-10' : '' }} text-center">
-                    <div class="icon-clean icon-red mb-3 mx-auto">
-                        <i class="bi bi-arrow-up-circle"></i>
-                    </div>
-                    <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Total Pengeluaran</span>
-                    <h3 class="fw-bold text-danger mb-2">Rp{{ number_format($pengeluaran, 0, ',', '.') }}</h3>
-                    <small class="text-muted" style="font-size: 11px;">Klik untuk memfilter pengeluaran</small>
                 </div>
             </a>
         </div>
@@ -49,6 +37,99 @@
                 </div>
             </a>
         </div>
+        <div class="col-4 col-lg-4">
+            <a href="{{ route('keuangan.index', array_merge(request()->except(['page']), ['jenis' => 'pengeluaran'])) }}" class="text-decoration-none text-dark d-block">
+                <div class="summary-card h-100 {{ request('jenis') == 'pengeluaran' ? 'border border-danger border-3 shadow-sm bg-danger-subtle bg-opacity-10' : '' }} text-center">
+                    <div class="icon-clean icon-red mb-3 mx-auto">
+                        <i class="bi bi-arrow-up-circle"></i>
+                    </div>
+                    <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Total Pengeluaran</span>
+                    <h3 class="fw-bold text-danger mb-2">Rp{{ number_format($pengeluaran, 0, ',', '.') }}</h3>
+                    <small class="text-muted" style="font-size: 11px;">Klik untuk memfilter pengeluaran</small>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Ringkasan Kategori Keuangan -->
+    <div class="row g-4 mb-4">
+        <!-- Kas Card -->
+        <div class="col-12 col-md-4 col-lg-4">
+            @php
+                $isKasActive = request('kategori') == 'Kas';
+                $kasLink = route('keuangan.index', array_merge(request()->except(['page']), ['kategori' => $isKasActive ? '' : 'Kas']));
+            @endphp
+            <a href="{{ $kasLink }}" class="text-decoration-none text-dark d-block">
+                <div class="card h-100 {{ $isKasActive ? 'border border-primary border-3 shadow bg-primary-subtle bg-opacity-10' : 'border-0 shadow-sm' }} rounded-4 p-3 bg-white dark:bg-slate-800" style="transition: all 0.25s;">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-cash-stack me-2"></i>Kategori KAS</h6>
+                    <hr class="my-2 card-divider">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Saldo Kas:</span>
+                        <span class="fw-semibold text-dark dark:text-white">Rp{{ number_format($kasTotal, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Pemasukan:</span>
+                        <span class="fw-semibold text-success">Rp{{ number_format($kasPemasukan, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">Pengeluaran:</span>
+                        <span class="fw-semibold text-danger">Rp{{ number_format($kasPengeluaran, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Iuran Card -->
+        <div class="col-12 col-md-4 col-lg-4">
+            @php
+                $isIuranActive = request('kategori') == 'Iuran';
+                $iuranLink = route('keuangan.index', array_merge(request()->except(['page']), ['kategori' => $isIuranActive ? '' : 'Iuran']));
+            @endphp
+            <a href="{{ $iuranLink }}" class="text-decoration-none text-dark d-block">
+                <div class="card h-100 {{ $isIuranActive ? 'border border-success border-3 shadow bg-success-subtle bg-opacity-10' : 'border-0 shadow-sm' }} rounded-4 p-3 bg-white dark:bg-slate-800" style="transition: all 0.25s;">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-wallet2 me-2"></i>Kategori IURAN</h6>
+                    <hr class="my-2 card-divider">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Saldo Iuran:</span>
+                        <span class="fw-semibold text-dark dark:text-white">Rp{{ number_format($iuranTotal, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Pemasukan:</span>
+                        <span class="fw-semibold text-success">Rp{{ number_format($iuranPemasukan, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">Pengeluaran:</span>
+                        <span class="fw-semibold text-danger">Rp{{ number_format($iuranPengeluaran, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Donasi Card -->
+        <div class="col-12 col-md-4 col-lg-4">
+            @php
+                $isDonasiActive = request('kategori') == 'Donasi';
+                $donasiLink = route('keuangan.index', array_merge(request()->except(['page']), ['kategori' => $isDonasiActive ? '' : 'Donasi']));
+            @endphp
+            <a href="{{ $donasiLink }}" class="text-decoration-none text-dark d-block">
+                <div class="card h-100 {{ $isDonasiActive ? 'border border-warning border-3 shadow bg-warning-subtle bg-opacity-10' : 'border-0 shadow-sm' }} rounded-4 p-3 bg-white dark:bg-slate-800" style="transition: all 0.25s;">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-heart me-2"></i>Kategori DONASI</h6>
+                    <hr class="my-2 card-divider">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Saldo Donasi:</span>
+                        <span class="fw-semibold text-dark dark:text-white">Rp{{ number_format($donasiTotal, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Pemasukan:</span>
+                        <span class="fw-semibold text-success">Rp{{ number_format($donasiPemasukan, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">Pengeluaran:</span>
+                        <span class="fw-semibold text-danger">Rp{{ number_format($donasiPengeluaran, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
 
     <div class="card shadow-sm border-0 rounded-4 mb-4">
@@ -60,6 +141,14 @@
                             <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
                             <input type="text" name="search" class="form-control" placeholder="Cari keterangan" value="{{ request('search') }}">
                         </div>
+                    </div>
+                    <div class="col-lg-auto">
+                        <select name="kategori" class="form-select" onchange="this.form.submit()">
+                            <option value="">Semua Kategori</option>
+                            <option value="Kas"   {{ request('kategori') == 'Kas'   ? 'selected' : '' }}>Kas</option>
+                            <option value="Iuran" {{ request('kategori') == 'Iuran' ? 'selected' : '' }}>Iuran</option>
+                            <option value="Donasi" {{ request('kategori') == 'Donasi' ? 'selected' : '' }}>Donasi</option>
+                        </select>
                     </div>
                     <div class="col-lg-auto">
                         <select name="jenis" class="form-select" onchange="this.form.submit()">

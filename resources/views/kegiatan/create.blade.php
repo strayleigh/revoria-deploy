@@ -16,8 +16,12 @@
                         <input type="text" name="nama_kegiatan" class="form-control" value="{{ old('nama_kegiatan') }}" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Tanggal <span class="text-danger">*</span></label>
-                        <input type="date" name="tanggal" class="form-control" value="{{ old('tanggal') }}" required>
+                        <label class="form-label fw-semibold">Tanggal Mulai <span class="text-danger">*</span></label>
+                        <input type="datetime-local" name="tanggal_mulai" class="form-control" value="{{ old('tanggal_mulai') }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Tanggal Selesai <span class="text-danger">*</span></label>
+                        <input type="datetime-local" name="tanggal_selesai" class="form-control" value="{{ old('tanggal_selesai') }}" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Lokasi</label>
@@ -45,6 +49,35 @@
                     <a href="{{ route('kegiatan.index') }}" class="btn btn-outline-secondary px-4">Batal</a>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tMulai = document.querySelector('input[name="tanggal_mulai"]');
+            const tSelesai = document.querySelector('input[name="tanggal_selesai"]');
+            const statusSelect = document.querySelector('select[name="status"]');
+
+            function autoUpdateStatus() {
+                if (!tMulai.value || !tSelesai.value) return;
+
+                const now = new Date();
+                const start = new Date(tMulai.value);
+                const end = new Date(tSelesai.value);
+
+                if (now < start) {
+                    statusSelect.value = 'terjadwal';
+                } else if (now >= start && now <= end) {
+                    statusSelect.value = 'berlangsung';
+                } else if (now > end) {
+                    statusSelect.value = 'selesai';
+                }
+            }
+
+            tMulai.addEventListener('change', autoUpdateStatus);
+            tSelesai.addEventListener('change', autoUpdateStatus);
+        });
+    </script>
         </div>
     </div>
 </x-sidebar>

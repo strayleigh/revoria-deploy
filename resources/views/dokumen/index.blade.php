@@ -106,7 +106,7 @@
                                     <div class="d-flex flex-column gap-1 mt-2">
                                         <small class="text-secondary d-flex align-items-center small">
                                             <i class="bi bi-calendar3 text-primary me-2"></i>
-                                            <span>{{ $kegiatan->tanggal?->format('d M Y') }}</span>
+                                            <span>{{ $kegiatan->tanggal_mulai?->format('d M Y') }}</span>
                                         </small>
                                         @if($kegiatan->lokasi)
                                             <small class="text-secondary d-flex align-items-center small text-truncate">

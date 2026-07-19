@@ -16,8 +16,12 @@
                         <input type="text" name="nama_kegiatan" class="form-control" value="{{ old('nama_kegiatan', $kegiatan->nama_kegiatan) }}" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Tanggal <span class="text-danger">*</span></label>
-                        <input type="date" name="tanggal" class="form-control" value="{{ old('tanggal', $kegiatan->tanggal?->format('Y-m-d')) }}" required>
+                        <label class="form-label fw-semibold">Tanggal Mulai <span class="text-danger">*</span></label>
+                        <input type="datetime-local" name="tanggal_mulai" class="form-control" value="{{ old('tanggal_mulai', $kegiatan->tanggal_mulai?->format('Y-m-d\TH:i')) }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Tanggal Selesai <span class="text-danger">*</span></label>
+                        <input type="datetime-local" name="tanggal_selesai" class="form-control" value="{{ old('tanggal_selesai', $kegiatan->tanggal_selesai?->format('Y-m-d\TH:i')) }}" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Lokasi</label>
@@ -47,26 +51,50 @@
                             <div class="progress-bar" id="progresBarForm" role="progressbar" style="width: {{ $kegiatan->progres ?? 0 }}%"></div>
                         </div>
                         <div class="checklist-box p-3 border rounded-3 bg-light bg-opacity-50">
-                            <div class="row g-3">
+                            <!-- Container for checklist items -->
+                            <div id="checklistContainer" class="d-flex flex-column gap-2 mb-3">
                                 @php
-                                    $items = ['Proposal','Surat Permohonan','Surat Peminjaman','Lokasi','Keuangan','Alat-alat','Konsumsi','LPJ'];
-                                    $progres = old('progres', $kegiatan->progres ?? 0);
+                                    $persiapan = $kegiatan->persiapan;
+                                    if (empty($persiapan)) {
+                                        $persiapan = [
+                                            ['name' => 'Proposal', 'checked' => false],
+                                            ['name' => 'Surat Permohonan', 'checked' => false],
+                                            ['name' => 'Surat Peminjaman', 'checked' => false],
+                                            ['name' => 'Lokasi', 'checked' => false],
+                                            ['name' => 'Keuangan', 'checked' => false],
+                                            ['name' => 'Alat-alat', 'checked' => false],
+                                            ['name' => 'Konsumsi', 'checked' => false],
+                                            ['name' => 'LPJ', 'checked' => false],
+                                        ];
+                                    }
                                 @endphp
-                                @foreach($items as $index => $item)
-                                    @php
-                                        $threshold = ($index + 1) * 12.5;
-                                        $isChecked = $progres >= ($threshold - 6);
-                                    @endphp
-                                    <div class="col-md-6">
-                                        <div class="form-check">
+                                @foreach($persiapan as $index => $item)
+                                    <div class="row g-2 align-items-center checklist-row">
+                                        <div class="col-auto">
+                                            <input type="hidden" name="persiapan[{{ $index }}][checked]" value="0">
                                             <input class="form-check-input checklist-item" type="checkbox"
-                                                   id="cek{{ Str::slug($item) }}" value="{{ $item }}"
-                                                   {{ $isChecked ? 'checked' : '' }}>
-                                            <label class="form-check-label fw-medium" for="cek{{ Str::slug($item) }}">{{ $item }}</label>
+                                                   name="persiapan[{{ $index }}][checked]" value="1"
+                                                   {{ !empty($item['checked']) ? 'checked' : '' }}>
+                                        </div>
+                                        <div class="col">
+                                            <input type="text" name="persiapan[{{ $index }}][name]" 
+                                                   class="form-control form-control-sm checklist-name" 
+                                                   value="{{ $item['name'] }}" required placeholder="Nama item persiapan">
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-circle btn-hapus-item"
+                                                    style="width: 32px; height: 32px; padding: 0;" title="Hapus">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
+                            
+                            <!-- Add Item Button -->
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" id="btnTambahItem">
+                                <i class="bi bi-plus-circle me-1"></i> Tambah Item Persiapan
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -80,6 +108,33 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('checklistContainer');
+            const btnTambah = document.getElementById('btnTambahItem');
+            
+            // Auto status trigger
+            const tMulai = document.querySelector('input[name="tanggal_mulai"]');
+            const tSelesai = document.querySelector('input[name="tanggal_selesai"]');
+            const statusSelect = document.querySelector('select[name="status"]');
+
+            function autoUpdateStatus() {
+                if (!tMulai.value || !tSelesai.value) return;
+
+                const now = new Date();
+                const start = new Date(tMulai.value);
+                const end = new Date(tSelesai.value);
+
+                if (now < start) {
+                    statusSelect.value = 'terjadwal';
+                } else if (now >= start && now <= end) {
+                    statusSelect.value = 'berlangsung';
+                } else if (now > end) {
+                    statusSelect.value = 'selesai';
+                }
+            }
+
+            tMulai.addEventListener('change', autoUpdateStatus);
+            tSelesai.addEventListener('change', autoUpdateStatus);
+            
             function hitungProgres() {
                 const items = document.querySelectorAll('.checklist-item');
                 const total = items.length;
@@ -91,9 +146,62 @@
                 document.getElementById('inputProgres').value = persen;
             }
 
-            document.querySelectorAll('.checklist-item').forEach(function(item) {
-                item.addEventListener('change', hitungProgres);
+            function reIndexInputs() {
+                const rows = container.querySelectorAll('.checklist-row');
+                rows.forEach((row, index) => {
+                    const hiddenInput = row.querySelector('input[type="hidden"]');
+                    const checkbox = row.querySelector('.checklist-item');
+                    const textInput = row.querySelector('.checklist-name');
+                    
+                    hiddenInput.name = `persiapan[${index}][checked]`;
+                    checkbox.name = `persiapan[${index}][checked]`;
+                    textInput.name = `persiapan[${index}][name]`;
+                });
+            }
+
+            container.addEventListener('click', function(e) {
+                if (e.target.closest('.btn-hapus-item')) {
+                    e.target.closest('.checklist-row').remove();
+                    reIndexInputs();
+                    hitungProgres();
+                }
             });
+
+            container.addEventListener('change', function(e) {
+                if (e.target.classList.contains('checklist-item')) {
+                    hitungProgres();
+                }
+            });
+
+            btnTambah.addEventListener('click', function() {
+                const newIndex = container.querySelectorAll('.checklist-row').length;
+                const newRow = document.createElement('div');
+                newRow.className = 'row g-2 align-items-center checklist-row';
+                newRow.innerHTML = `
+                    <div class="col-auto">
+                        <input type="hidden" name="persiapan[${newIndex}][checked]" value="0">
+                        <input class="form-check-input checklist-item" type="checkbox"
+                               name="persiapan[${newIndex}][checked]" value="1">
+                    </div>
+                    <div class="col">
+                        <input type="text" name="persiapan[${newIndex}][name]" 
+                               class="form-control form-control-sm checklist-name" 
+                               value="" required placeholder="Nama item persiapan">
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-outline-danger btn-sm rounded-circle btn-hapus-item"
+                                style="width: 32px; height: 32px; padding: 0;" title="Hapus">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(newRow);
+                newRow.querySelector('.checklist-name').focus();
+                reIndexInputs();
+                hitungProgres();
+            });
+
+            hitungProgres();
         });
     </script>
 </x-sidebar>

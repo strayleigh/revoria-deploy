@@ -26,9 +26,9 @@ class DivisiController extends Controller implements HasMiddleware
                 // Aksi tulis (tambah, edit, hapus) dibatasi ketat hanya untuk Admin dan Ketua
                 $routeAction = $request->route()->getActionMethod();
                 if (in_array($routeAction, ['store', 'update', 'destroy'], true)) {
-                    $canCRUD = (in_array($currentUserJabatan, ['ketua'], true) || $user->name === 'admin');
+                    $canCRUD = (in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris'], true) || $user->name === 'admin');
                     if (!$canCRUD) {
-                        abort(403, 'Hanya Admin dan Ketua yang dapat menambah, mengedit, atau menghapus divisi.');
+                        abort(403, 'Hanya Admin, Ketua, Wakil Ketua, dan Sekretaris yang dapat menambah, mengedit, atau menghapus divisi.');
                     }
                 }
 

@@ -5,7 +5,7 @@
         </a>
         <div>
             <h2 class="mb-0 fw-bold">Kelola Kepanitiaan</h2>
-            <p class="text-muted small mb-0">{{ $kegiatan->nama_kegiatan }} • {{ $kegiatan->tanggal?->format('d M Y') }}</p>
+            <p class="text-muted small mb-0">{{ $kegiatan->nama_kegiatan }} • {{ $kegiatan->tanggal_mulai?->format('d M Y') }}</p>
         </div>
     </div>
 

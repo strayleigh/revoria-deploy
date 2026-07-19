@@ -28,11 +28,11 @@ class MemberController extends Controller implements HasMiddleware
                 return $next($request);
             }),
 
-            // Otorisasi mengelola (write): Hanya Sekretaris dan Admin
+            // Otorisasi mengelola (write): Hanya Ketua, Wakil Ketua, Sekretaris, dan Admin
             new Middleware(function ($request, $next) {
                 $user = auth()->user();
                 $currentUserJabatan = strtolower($user->anggota?->jabatan ?? '');
-                $isWriteAuthorized = in_array($currentUserJabatan, ['sekretaris'], true) || $user->name === 'admin';
+                $isWriteAuthorized = in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris'], true) || $user->name === 'admin';
 
                 if (!$isWriteAuthorized) {
                     abort(403, 'Anda tidak memiliki hak akses untuk mengelola data anggota.');
@@ -45,13 +45,20 @@ class MemberController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
+        $perPage = $request->input('per_page', 10);
+        if ($perPage === 'all') {
+            $perPageNum = 100000;
+        } else {
+            $perPageNum = in_array((int)$perPage, [10, 25, 50], true) ? (int)$perPage : 10;
+        }
+
         $anggotas = Anggota::with(['divisi', 'user'])
             ->when($request->search, fn($q, $s) => $q->where('nama', 'like', "%$s%")->orWhere('jabatan', 'like', "%$s%"))
             ->when($request->jabatan, fn($q, $j) => $q->where('jabatan', $j))
             ->when($request->divisi_id, fn($q, $d) => $q->where('divisi_id', $d))
             ->when($request->status, fn($q, $s) => $q->where('status_anggota', $s))
             ->orderBy('nama')
-            ->paginate(15)
+            ->paginate($perPageNum)
             ->withQueryString();
 
         $divisis = Divisi::orderBy('nama_divisi')->get();
@@ -72,7 +79,7 @@ class MemberController extends Controller implements HasMiddleware
             'jabatan'           => 'required|string|max:100',
             'tanggal_bergabung' => 'required|date',
             'status_anggota'    => 'required|in:aktif,tidak aktif',
-            'alamat'            => 'required|string',
+            'alamat'            => 'nullable|string',
             'divisi_id'         => 'nullable|exists:divisi,id_divisi',
         ]);
 
@@ -139,15 +146,15 @@ class MemberController extends Controller implements HasMiddleware
             'jabatan'           => 'required|string|max:100',
             'tanggal_bergabung' => 'required|date',
             'status_anggota'    => 'required|in:aktif,tidak aktif',
-            'alamat'            => 'required|string',
+            'alamat'            => 'nullable|string',
             'divisi_id'         => 'nullable|exists:divisi,id_divisi',
         ]);
 
         $data = $request->all();
 
-        // Cek otorisasi untuk mengubah jabatan (Sekretaris atau user Admin)
+        // Cek otorisasi untuk mengubah jabatan (Ketua, Wakil Ketua, Sekretaris, atau user Admin)
         $currentUserJabatan = strtolower(auth()->user()->anggota?->jabatan ?? '');
-        $allowedToChangeJabatan = in_array($currentUserJabatan, ['sekretaris'], true) || auth()->user()->name === 'admin';
+        $allowedToChangeJabatan = in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris'], true) || auth()->user()->name === 'admin';
 
         if (!$allowedToChangeJabatan) {
             // Paksa jabatan tetap menggunakan nilai yang lama di database

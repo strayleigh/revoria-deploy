@@ -56,6 +56,10 @@
                             <option value="sakit"       {{ old('status_hadir') == 'sakit'        ? 'selected' : '' }}>Sakit</option>
                         </select>
                     </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Keterangan</label>
+                        <textarea name="keterangan" class="form-control" rows="2" placeholder="Masukkan keterangan (opsional, misal: alasan sakit/izin)">{{ old('keterangan') }}</textarea>
+                    </div>
                 </div>
                 @unless($anggota)
                     <div class="alert alert-warning rounded-3">

@@ -12,7 +12,7 @@ class KegiatanController extends Controller
         $kegiatans = Kegiatan::with(['transaksi', 'panitia.anggota'])
             ->when($request->search, fn($q, $s) => $q->whereRaw('LOWER(nama_kegiatan) LIKE ?', ["%" . strtolower($s) . "%"]))
             ->when($request->status, fn($q, $s) => $q->where('status', $s))
-            ->orderByDesc('tanggal')
+            ->orderByDesc('tanggal_mulai')
             ->paginate(12)
             ->withQueryString();
 
@@ -40,15 +40,29 @@ class KegiatanController extends Controller
         }
 
         $request->validate([
-            'nama_kegiatan' => 'required|string|max:255',
-            'tanggal'       => 'required|date',
-            'lokasi'        => 'nullable|string|max:255',
-            'deskripsi'     => 'nullable|string',
-            'status'        => 'required|in:terjadwal,berlangsung,selesai',
-            'progres'       => 'nullable|integer|min:0|max:100',
+            'nama_kegiatan'   => 'required|string|max:255',
+            'tanggal_mulai'   => 'required|date',
+            'tanggal_selesai' => 'required|date',
+            'lokasi'          => 'nullable|string|max:255',
+            'deskripsi'       => 'nullable|string',
+            'status'          => 'required|in:terjadwal,berlangsung,selesai',
+            'progres'         => 'nullable|integer|min:0|max:100',
         ]);
 
-        Kegiatan::create($request->all());
+        $data = $request->all();
+        $data['persiapan'] = [
+            ['name' => 'Proposal', 'checked' => false],
+            ['name' => 'Surat Permohonan', 'checked' => false],
+            ['name' => 'Surat Peminjaman', 'checked' => false],
+            ['name' => 'Lokasi', 'checked' => false],
+            ['name' => 'Keuangan', 'checked' => false],
+            ['name' => 'Alat-alat', 'checked' => false],
+            ['name' => 'Konsumsi', 'checked' => false],
+            ['name' => 'LPJ', 'checked' => false],
+        ];
+        $data['progres'] = 0;
+
+        Kegiatan::create($data);
 
         return redirect()->route('kegiatan.index')->with('success', 'Kegiatan berhasil ditambahkan.');
     }
@@ -104,15 +118,41 @@ class KegiatanController extends Controller
         }
 
         $request->validate([
-            'nama_kegiatan' => 'required|string|max:255',
-            'tanggal'       => 'required|date',
-            'lokasi'        => 'nullable|string|max:255',
-            'deskripsi'     => 'nullable|string',
-            'status'        => 'required|in:terjadwal,berlangsung,selesai',
-            'progres'       => 'nullable|integer|min:0|max:100',
+            'nama_kegiatan'   => 'required|string|max:255',
+            'tanggal_mulai'   => 'required|date',
+            'tanggal_selesai' => 'required|date',
+            'lokasi'          => 'nullable|string|max:255',
+            'deskripsi'       => 'nullable|string',
+            'status'          => 'required|in:terjadwal,berlangsung,selesai',
+            'progres'         => 'nullable|integer|min:0|max:100',
         ]);
 
-        $kegiatan->update($request->all());
+        $data = $request->all();
+
+        // Process dynamic persiapan array
+        if ($request->has('persiapan')) {
+            $persiapan = [];
+            foreach ($request->input('persiapan') as $item) {
+                if (isset($item['name']) && trim($item['name']) !== '') {
+                    $persiapan[] = [
+                        'name' => trim($item['name']),
+                        'checked' => isset($item['checked']) && ($item['checked'] === '1' || $item['checked'] === true),
+                    ];
+                }
+            }
+            $data['persiapan'] = $persiapan;
+
+            // Recalculate progress dynamically
+            $total = count($persiapan);
+            $checked = collect($persiapan)->where('checked', true)->count();
+            $data['progres'] = $total > 0 ? round(($checked / $total) * 100) : 0;
+        } else {
+            // If completely empty/cleared
+            $data['persiapan'] = [];
+            $data['progres'] = 0;
+        }
+
+        $kegiatan->update($data);
 
         return redirect()->route('kegiatan.index')->with('success', 'Kegiatan berhasil diperbarui.');
     }

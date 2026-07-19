@@ -46,7 +46,7 @@ class DokumenController extends Controller implements HasMiddleware
         $kegiatans = Kegiatan::with('folder')
             ->when($request->search, fn($q, $s) => $q->whereRaw('LOWER(nama_kegiatan) LIKE ?', ["%" . strtolower($s) . "%"]))
             ->when($status, fn($q, $s) => $q->where('status', $s))
-            ->orderByDesc('tanggal')
+            ->orderByDesc('tanggal_mulai')
             ->get();
 
         return view('dokumen.index', compact('kegiatans'));
@@ -132,7 +132,7 @@ class DokumenController extends Controller implements HasMiddleware
 
     public function create()
     {
-        $kegiatans = Kegiatan::orderByDesc('tanggal')->get();
+        $kegiatans = Kegiatan::orderByDesc('tanggal_mulai')->get();
         return view('dokumen.create', compact('kegiatans'));
     }
 
@@ -152,7 +152,7 @@ class DokumenController extends Controller implements HasMiddleware
 
     public function edit(Folder $dokumen)
     {
-        $kegiatans = Kegiatan::orderByDesc('tanggal')->get();
+        $kegiatans = Kegiatan::orderByDesc('tanggal_mulai')->get();
         return view('dokumen.edit', compact('dokumen', 'kegiatans'));
     }
 

@@ -43,6 +43,10 @@
                             <option value="sakit"       {{ old('status_hadir', $absensi->status_hadir) == 'sakit'        ? 'selected' : '' }}>Sakit</option>
                         </select>
                     </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Keterangan</label>
+                        <textarea name="keterangan" class="form-control" rows="2" placeholder="Masukkan keterangan (opsional, misal: alasan sakit/izin)">{{ old('keterangan', $absensi->keterangan) }}</textarea>
+                    </div>
                 </div>
                 <div class="mt-4 d-flex gap-2">
                     <button type="submit" class="btn btn-primary px-4">Simpan Perubahan</button>

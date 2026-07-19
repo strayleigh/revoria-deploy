@@ -57,9 +57,9 @@ class LaporanController extends Controller
 
     private function exportKegiatan(): StreamedResponse
     {
-        $rows = Kegiatan::with(['panitia.anggota', 'transaksi', 'absensi'])->orderByDesc('tanggal')->get();
+        $rows = Kegiatan::with(['panitia.anggota', 'transaksi', 'absensi'])->orderByDesc('tanggal_mulai')->get();
 
-        $header = ['No', 'Nama Kegiatan', 'Tanggal', 'Lokasi', 'Status', 'Progres (%)', 'Deskripsi', 'Dana Terkumpul', 'Kepanitiaan', 'Panitia Hadir'];
+        $header = ['No', 'Nama Kegiatan', 'Waktu Mulai', 'Waktu Selesai', 'Lokasi', 'Status', 'Progres (%)', 'Deskripsi', 'Dana Terkumpul', 'Kepanitiaan', 'Panitia Hadir'];
         
         $data = $rows->map(function($r, $i) {
             // Dana Terkumpul
@@ -79,7 +79,8 @@ class LaporanController extends Controller
             return [
                 $i + 1,
                 $r->nama_kegiatan,
-                $r->tanggal?->format('d/m/Y') ?: '-',
+                $r->tanggal_mulai?->format('d/m/Y H:i') ?: '-',
+                $r->tanggal_selesai?->format('d/m/Y H:i') ?: '-',
                 $r->lokasi ?: '-',
                 ucfirst($r->status),
                 ($r->progres ?? 0) . '%',
@@ -170,8 +171,10 @@ class LaporanController extends Controller
             $row++;
         }
 
-        // Tambahkan Waktu Export ke summary
+        // Tambahkan Waktu Export dan Tahun Periode ke summary
+        $tahunPeriode = now()->setTimezone('Asia/Jakarta')->format('Y');
         $exportTime = now()->setTimezone('Asia/Jakarta')->format('d-m-Y H:i:s');
+        $summary['Tahun Periode'] = $tahunPeriode;
         $summary['Waktu Export'] = $exportTime . ' WIB';
 
         // Tampilkan summary block jika ada
@@ -205,7 +208,7 @@ class LaporanController extends Controller
 
         return response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
-        }, "{$filename}_{$fileTimestamp}.xlsx", [
+        }, "{$filename}_{$tahunPeriode}_{$fileTimestamp}.xlsx", [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }

@@ -35,6 +35,19 @@
                             value="{{ old('no_hp', auth()->user()->anggota?->no_hp ?? auth()->user()->no_hp) }}" placeholder="Contoh: 08123456789">
                         @error('no_hp')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+                    @if(auth()->user()->anggota)
+                    <div class="mb-3">
+                        <label class="form-label">Divisi</label>
+                        <select name="divisi_id" class="form-select @error('divisi_id') is-invalid @enderror" required>
+                            @foreach($divisis as $d)
+                                <option value="{{ $d->id_divisi }}" {{ old('divisi_id', auth()->user()->anggota->divisi_id) == $d->id_divisi ? 'selected' : '' }}>
+                                    {{ $d->nama_divisi }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('divisi_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    </div>
+                    @endif
                     <button type="submit" class="btn btn-primary">Simpan</button>
                 </form>
             </div>

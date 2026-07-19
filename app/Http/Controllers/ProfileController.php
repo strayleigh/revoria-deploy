@@ -23,7 +23,13 @@ class ProfileController extends Controller
                 ->orderBy('nama')->get()
             : collect();
 
-        return view('profile.edit', ['user' => $request->user(), 'anggotas' => $anggotas]);
+        $divisis = \App\Models\Divisi::where('nama_divisi', '!=', 'BPH')->get();
+
+        return view('profile.edit', [
+            'user' => $request->user(),
+            'anggotas' => $anggotas,
+            'divisis' => $divisis
+        ]);
     }
 
     public function linkAnggota(Request $request): RedirectResponse
@@ -64,6 +70,13 @@ class ProfileController extends Controller
             unset($data['no_hp']);
         }
 
+        // Simpan divisi_id secara terpisah ke anggota (jika ada) dan hapus dari data user
+        $divisiId = null;
+        if (array_key_exists('divisi_id', $data)) {
+            $divisiId = $data['divisi_id'];
+            unset($data['divisi_id']);
+        }
+
         $user->fill($data);
 
         if ($user->isDirty('email')) {
@@ -72,12 +85,22 @@ class ProfileController extends Controller
 
         $user->save();
 
-        if ($noHp !== null) {
-            $anggota = $user->anggota;
-            if ($anggota) {
-                $anggota->update([
-                    'no_hp' => $noHp,
-                ]);
+        if ($user->anggota) {
+            $anggotaUpdate = [];
+            if ($noHp !== null) {
+                $anggotaUpdate['no_hp'] = $noHp;
+            }
+            if ($divisiId !== null) {
+                // Ensure they didn't try to cheat and select BPH
+                $bphDivisi = \App\Models\Divisi::where('nama_divisi', 'BPH')->first();
+                if ($bphDivisi && (int)$divisiId === (int)$bphDivisi->id_divisi) {
+                    return Redirect::route('profile.edit')->withErrors(['divisi_id' => 'Tidak boleh memindahkan ke divisi BPH.']);
+                }
+                $anggotaUpdate['divisi_id'] = $divisiId;
+            }
+            
+            if (!empty($anggotaUpdate)) {
+                $user->anggota->update($anggotaUpdate);
             }
         }
 

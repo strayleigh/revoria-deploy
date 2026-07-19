@@ -16,8 +16,12 @@
             </div>
             <div class="row g-3">
                 <div class="col-md-6">
-                    <p class="text-muted small mb-1">Tanggal</p>
-                    <p class="fw-semibold">{{ $kegiatan->tanggal?->format('d M Y') ?: '-' }}</p>
+                    <p class="text-muted small mb-1">Tanggal Mulai</p>
+                    <p class="fw-semibold">{{ $kegiatan->tanggal_mulai?->format('d M Y H:i') ?: '-' }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted small mb-1">Tanggal Selesai</p>
+                    <p class="fw-semibold">{{ $kegiatan->tanggal_selesai?->format('d M Y H:i') ?: '-' }}</p>
                 </div>
                 <div class="col-md-6">
                     <p class="text-muted small mb-1">Lokasi</p>
@@ -33,6 +37,42 @@
                 <div class="col-12">
                     <p class="text-muted small mb-1">Deskripsi</p>
                     <p>{{ $kegiatan->deskripsi ?: '-' }}</p>
+                </div>
+                
+                <!-- ========== CHECKLIST PERSIAPAN ========== -->
+                <div class="col-12 mt-2">
+                    <p class="text-muted small mb-2">Checklist Persiapan</p>
+                    <div class="row g-2 p-3 border rounded-3 bg-light bg-opacity-50">
+                        @php
+                            $persiapan = $kegiatan->persiapan ?? [
+                                ['name' => 'Proposal', 'checked' => false],
+                                ['name' => 'Surat Permohonan', 'checked' => false],
+                                ['name' => 'Surat Peminjaman', 'checked' => false],
+                                ['name' => 'Lokasi', 'checked' => false],
+                                ['name' => 'Keuangan', 'checked' => false],
+                                ['name' => 'Alat-alat', 'checked' => false],
+                                ['name' => 'Konsumsi', 'checked' => false],
+                                ['name' => 'LPJ', 'checked' => false],
+                            ];
+                        @endphp
+                        @forelse($persiapan as $item)
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2 py-1">
+                                    @if(!empty($item['checked']))
+                                        <i class="bi bi-check-circle-fill text-success" style="font-size: 16px;"></i>
+                                        <span class="text-decoration-line-through text-muted small">{{ $item['name'] }}</span>
+                                    @else
+                                        <i class="bi bi-circle text-muted" style="font-size: 16px;"></i>
+                                        <span class="small fw-semibold text-dark">{{ $item['name'] }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @empty
+                            <div class="col-12 text-center py-2 text-muted small">
+                                Tidak ada item persiapan.
+                            </div>
+                        @endforelse
+                    </div>
                 </div>
             </div>
             <div class="mt-4 d-flex gap-2 flex-wrap">

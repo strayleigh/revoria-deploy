@@ -116,6 +116,32 @@
                 @error('role')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
             </div>
 
+            <div id="anggotaFields" style="display: block;">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nomor HP / Telepon <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                        <input type="text" name="no_hp" id="inputNoHp" class="form-control @error('no_hp') is-invalid @enderror"
+                            value="{{ old('no_hp') }}" placeholder="08xxxxxxxxxx">
+                    </div>
+                    @error('no_hp')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Divisi <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                        <select name="divisi_id" id="selectDivisi" class="form-select @error('divisi_id') is-invalid @enderror">
+                            <option value="">Pilih Divisi</option>
+                            @foreach($divisis as $d)
+                                <option value="{{ $d->id_divisi }}" {{ old('divisi_id') == $d->id_divisi ? 'selected' : '' }}>{{ $d->nama_divisi }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('divisi_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
             <div class="mb-3">
                 <label class="form-label fw-semibold">Password</label>
                 <div class="input-group">
@@ -148,5 +174,28 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleSelect = document.getElementById('selectRole');
+            const anggotaFields = document.getElementById('anggotaFields');
+            const inputNoHp = document.getElementById('inputNoHp');
+            const selectDivisi = document.getElementById('selectDivisi');
+
+            function toggleAnggotaFields() {
+                if (roleSelect.value === 'anggota') {
+                    anggotaFields.style.display = 'block';
+                    inputNoHp.setAttribute('required', 'required');
+                    selectDivisi.setAttribute('required', 'required');
+                } else {
+                    anggotaFields.style.display = 'none';
+                    inputNoHp.removeAttribute('required');
+                    selectDivisi.removeAttribute('required');
+                }
+            }
+
+            roleSelect.addEventListener('change', toggleAnggotaFields);
+            toggleAnggotaFields(); // Run on load
+        });
+    </script>
 </body>
 </html>

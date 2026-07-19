@@ -2,7 +2,7 @@
     @php
         $user = auth()->user();
         $currentUserJabatan = strtolower($user->anggota?->jabatan ?? '');
-        $canManage = (in_array($currentUserJabatan, ['ketua'], true) || $user->name === 'admin');
+        $canManage = (in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris'], true) || $user->name === 'admin');
     @endphp
 
     <div class="d-flex justify-content-between align-items-center mb-4">

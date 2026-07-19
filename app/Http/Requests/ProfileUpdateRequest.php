@@ -27,6 +27,7 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(User::class)->ignore($this->user()->id_user, 'id_user'),
             ],
             'no_hp' => ['nullable', 'string', 'max:20'],
+            'divisi_id' => ['nullable', 'exists:divisi,id_divisi'],
         ];
     }
 }

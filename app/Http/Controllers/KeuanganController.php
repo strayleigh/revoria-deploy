@@ -47,6 +47,7 @@ class KeuanganController extends Controller implements HasMiddleware
         $transaksis = TransaksiKeuangan::with('kegiatan')
             ->when($request->search, fn($q, $s) => $q->where('keterangan', 'like', "%$s%"))
             ->when($request->jenis, fn($q, $j) => $q->where('jenis_transaksi', $j))
+            ->when($request->kategori, fn($q, $k) => $q->where('kategori', $k))
             ->orderByDesc('tanggal')
             ->paginate(15)
             ->withQueryString();
@@ -55,12 +56,32 @@ class KeuanganController extends Controller implements HasMiddleware
         $pengeluaran = TransaksiKeuangan::where('jenis_transaksi', 'pengeluaran')->sum('nominal');
         $saldo       = $pemasukan - $pengeluaran;
 
-        return view('keuangan.index', compact('transaksis', 'pemasukan', 'pengeluaran', 'saldo'));
+        // Kategori: Kas
+        $kasPemasukan   = TransaksiKeuangan::where('kategori', 'Kas')->where('jenis_transaksi', 'pemasukan')->sum('nominal');
+        $kasPengeluaran = TransaksiKeuangan::where('kategori', 'Kas')->where('jenis_transaksi', 'pengeluaran')->sum('nominal');
+        $kasTotal       = $kasPemasukan - $kasPengeluaran;
+
+        // Kategori: Iuran
+        $iuranPemasukan   = TransaksiKeuangan::where('kategori', 'Iuran')->where('jenis_transaksi', 'pemasukan')->sum('nominal');
+        $iuranPengeluaran = TransaksiKeuangan::where('kategori', 'Iuran')->where('jenis_transaksi', 'pengeluaran')->sum('nominal');
+        $iuranTotal       = $iuranPemasukan - $iuranPengeluaran;
+
+        // Kategori: Donasi
+        $donasiPemasukan   = TransaksiKeuangan::where('kategori', 'Donasi')->where('jenis_transaksi', 'pemasukan')->sum('nominal');
+        $donasiPengeluaran = TransaksiKeuangan::where('kategori', 'Donasi')->where('jenis_transaksi', 'pengeluaran')->sum('nominal');
+        $donasiTotal       = $donasiPemasukan - $donasiPengeluaran;
+
+        return view('keuangan.index', compact(
+            'transaksis', 'pemasukan', 'pengeluaran', 'saldo',
+            'kasPemasukan', 'kasPengeluaran', 'kasTotal',
+            'iuranPemasukan', 'iuranPengeluaran', 'iuranTotal',
+            'donasiPemasukan', 'donasiPengeluaran', 'donasiTotal'
+        ));
     }
 
     public function create()
     {
-        $kegiatans = Kegiatan::orderByDesc('tanggal')->get();
+        $kegiatans = Kegiatan::orderByDesc('tanggal_mulai')->get();
 
         return view('keuangan.create', compact('kegiatans'));
     }
@@ -83,7 +104,7 @@ class KeuanganController extends Controller implements HasMiddleware
 
     public function edit(TransaksiKeuangan $keuangan)
     {
-        $kegiatans = Kegiatan::orderByDesc('tanggal')->get();
+        $kegiatans = Kegiatan::orderByDesc('tanggal_mulai')->get();
 
         return view('keuangan.edit', compact('keuangan', 'kegiatans'));
     }

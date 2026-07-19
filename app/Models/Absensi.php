@@ -16,7 +16,7 @@ class Absensi extends Model
     public function getRouteKeyName(): string { return 'id_absensi'; }
 
     protected $fillable = [
-        'tanggal_absensi', 'waktu_absen', 'status_hadir', 'id_anggota', 'kode_kegiatan',
+        'tanggal_absensi', 'waktu_absen', 'status_hadir', 'id_anggota', 'kode_kegiatan', 'keterangan',
     ];
 
     protected $casts = ['tanggal_absensi' => 'date'];

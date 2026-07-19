@@ -57,16 +57,16 @@
                                 'terjadwal'   => 'bg-warning text-dark',
                                 default       => 'bg-secondary',
                             };
-                            $diffDays = $keg->tanggal
-                                ? now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($keg->tanggal)->startOfDay(), false)
+                            $diffDays = $keg->tanggal_mulai
+                                ? now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($keg->tanggal_mulai)->startOfDay(), false)
                                 : null;
                         @endphp
-                        <li class="list-group-item activity-item d-flex justify-content-between align-items-start py-3 mb-2">
+                        <a href="{{ route('kegiatan.show', $keg->kode_kegiatan) }}" class="list-group-item list-group-item-action activity-item d-flex justify-content-between align-items-start py-3 mb-2 text-decoration-none">
                             <div>
-                                <div class="fw-semibold mb-1">{{ $keg->nama_kegiatan }}</div>
+                                <div class="fw-semibold mb-1 text-dark">{{ $keg->nama_kegiatan }}</div>
                                 <small class="text-muted">
                                     <i class="bi bi-calendar3 me-1"></i>
-                                    {{ $keg->tanggal?->format('d M Y') ?? '-' }}
+                                    {{ $keg->tanggal_mulai?->format('d M Y, H:i') ?? '-' }} s/d {{ $keg->tanggal_selesai?->format('d M Y, H:i') ?? '-' }}
                                 </small>
                             </div>
                             <div class="text-end d-flex flex-column gap-2 ms-3 flex-shrink-0">
@@ -81,7 +81,7 @@
                                     @endif
                                 @endif
                             </div>
-                        </li>
+                        </a>
                     @empty
                         <li class="list-group-item text-muted">Tidak ada kegiatan hari ini.</li>
                     @endforelse
@@ -145,16 +145,16 @@
                                 'terjadwal'   => 'bg-warning text-dark',
                                 default       => 'bg-secondary',
                             };
-                            $diffDays = $keg->tanggal
-                                ? now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($keg->tanggal)->startOfDay(), false)
+                            $diffDays = $keg->tanggal_mulai
+                                ? now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($keg->tanggal_mulai)->startOfDay(), false)
                                 : null;
                         @endphp
-                        <li class="list-group-item activity-item d-flex justify-content-between align-items-start py-3 mb-2">
+                        <a href="{{ route('kegiatan.show', $keg->kode_kegiatan) }}" class="list-group-item list-group-item-action activity-item d-flex justify-content-between align-items-start py-3 mb-2 text-decoration-none">
                             <div>
-                                <div class="fw-semibold mb-1">{{ $keg->nama_kegiatan }}</div>
+                                <div class="fw-semibold mb-1 text-dark">{{ $keg->nama_kegiatan }}</div>
                                 <small class="text-muted">
                                     <i class="bi bi-calendar3 me-1"></i>
-                                    {{ $keg->tanggal?->format('d M Y') ?? '-' }}
+                                    {{ $keg->tanggal_mulai?->format('d M Y, H:i') ?? '-' }} s/d {{ $keg->tanggal_selesai?->format('d M Y, H:i') ?? '-' }}
                                 </small>
                             </div>
                             <div class="text-end d-flex flex-column gap-2 ms-3 flex-shrink-0">
@@ -169,7 +169,7 @@
                                     @endif
                                 @endif
                             </div>
-                        </li>
+                        </a>
                     @empty
                         <li class="list-group-item text-muted">Tidak ada kegiatan mendatang.</li>
                     @endforelse

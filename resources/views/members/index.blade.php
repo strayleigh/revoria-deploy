@@ -1,6 +1,6 @@
 @php
     $currentUserJabatan = strtolower(auth()->user()->anggota?->jabatan ?? '');
-    $canManage = in_array($currentUserJabatan, ['sekretaris'], true) || auth()->user()->name === 'admin';
+    $canManage = in_array($currentUserJabatan, ['ketua', 'wakil ketua', 'sekretaris'], true) || auth()->user()->name === 'admin';
 @endphp
 <x-sidebar title="Anggota">
 
@@ -55,6 +55,14 @@
                             <option value="">Semua Status</option>
                             <option value="aktif"        {{ request('status') == 'aktif'       ? 'selected' : '' }}>Aktif</option>
                             <option value="tidak aktif"  {{ request('status') == 'tidak aktif' ? 'selected' : '' }}>Tidak Aktif</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-auto">
+                        <select name="per_page" class="form-select" onchange="this.form.submit()">
+                            <option value="10"  {{ request('per_page', 10) == '10' ? 'selected' : '' }}>Tampilkan 10</option>
+                            <option value="25"  {{ request('per_page') == '25'    ? 'selected' : '' }}>Tampilkan 25</option>
+                            <option value="50"  {{ request('per_page') == '50'    ? 'selected' : '' }}>Tampilkan 50</option>
+                            <option value="all" {{ request('per_page') == 'all'   ? 'selected' : '' }}>Tampilkan Semua</option>
                         </select>
                     </div>
                     <div class="col-lg-auto d-flex gap-2">
@@ -290,7 +298,16 @@
         function bukaDetail(btn) {
             document.getElementById('detailNama').innerText    = btn.dataset.nama    || '-';
             document.getElementById('detailJabatan').innerText = btn.dataset.jabatan || '-';
-            document.getElementById('detailStatus').innerText  = btn.dataset.status  || '-';
+            
+            const statusEl = document.getElementById('detailStatus');
+            const status = btn.dataset.status || '-';
+            statusEl.innerText = status;
+            if (status === 'aktif') {
+                statusEl.className = 'badge bg-success-subtle text-success';
+            } else {
+                statusEl.className = 'badge bg-secondary-subtle text-secondary';
+            }
+            
             document.getElementById('detailHp').innerText      = btn.dataset.hp      || '-';
             document.getElementById('detailTanggal').innerText = btn.dataset.tanggal || '-';
             document.getElementById('detailAlamat').innerText  = btn.dataset.alamat  || '-';

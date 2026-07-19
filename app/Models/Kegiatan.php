@@ -16,10 +16,14 @@ class Kegiatan extends Model
     public function getRouteKeyName(): string { return 'kode_kegiatan'; }
 
     protected $fillable = [
-        'nama_kegiatan', 'tanggal', 'lokasi', 'deskripsi', 'status', 'progres',
+        'nama_kegiatan', 'tanggal_mulai', 'tanggal_selesai', 'lokasi', 'deskripsi', 'status', 'progres', 'persiapan',
     ];
 
-    protected $casts = ['tanggal' => 'date'];
+    protected $casts = [
+        'tanggal_mulai' => 'datetime',
+        'tanggal_selesai' => 'datetime',
+        'persiapan' => 'array',
+    ];
 
     public function absensi()
     {

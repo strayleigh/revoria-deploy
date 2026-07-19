@@ -17,12 +17,10 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
     public function create(): View
     {
-        return view('auth.register');
+        $divisis = \App\Models\Divisi::all();
+        return view('auth.register', compact('divisis'));
     }
 
     /**
@@ -32,17 +30,26 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validationRules = [
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'role'     => ['required', 'in:anggota,pembina'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        ];
+
+        if ($request->role === 'anggota') {
+            $validationRules['no_hp'] = ['required', 'string', 'max:20'];
+            $validationRules['divisi_id'] = ['required', 'exists:divisi,id_divisi'];
+        }
+
+        $request->validate($validationRules);
 
         $anggotaId = null;
         if ($request->role === 'anggota') {
             $anggota = Anggota::create([
                 'nama'              => $request->name,
+                'no_hp'             => $request->no_hp,
+                'divisi_id'         => $request->divisi_id,
                 'tanggal_bergabung' => Carbon::now(),
                 'status_anggota'    => 'aktif',
                 'jabatan'           => 'Anggota',
