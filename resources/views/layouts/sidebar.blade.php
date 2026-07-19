@@ -37,6 +37,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('divisi.*') ? 'active' : '' }}" href="{{ route('divisi.index') }}">
+                            <i class="bi bi-diagram-3"></i> Divisi
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('absensi.*') ? 'active' : '' }}" href="{{ route('absensi.index') }}">
                             <i class="bi bi-check2-square"></i> Absensi
                         </a>
