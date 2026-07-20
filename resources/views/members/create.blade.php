@@ -19,7 +19,7 @@
                         <label class="form-label fw-semibold">Jabatan <span class="text-danger">*</span></label>
                         <select name="jabatan" class="form-select" required>
                             <option value="">Pilih Jabatan</option>
-                            @foreach(['Ketua','Wakil Ketua','Sekretaris','Bendahara','Kepala Divisi','Penanggung Jawab','Anggota'] as $j)
+                            @foreach(['Ketua','Wakil Ketua','Sekretaris','Bendahara','Kepala Divisi','Anggota'] as $j)
                                 <option value="{{ $j }}" {{ old('jabatan') == $j ? 'selected' : '' }}>{{ $j }}</option>
                             @endforeach
                         </select>
