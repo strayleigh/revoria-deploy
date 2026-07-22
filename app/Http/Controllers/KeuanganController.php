@@ -45,9 +45,18 @@ class KeuanganController extends Controller implements HasMiddleware
     public function index(Request $request)
     {
         $transaksis = TransaksiKeuangan::with('kegiatan')
-            ->when($request->search, fn($q, $s) => $q->where('keterangan', 'like', "%$s%"))
+            ->when($request->search, function($q, $s) {
+                $q->where(function($query) use ($s) {
+                    $query->where('keterangan', 'like', "%$s%")
+                          ->orWhereHas('kegiatan', function($qk) use ($s) {
+                              $qk->where('nama_kegiatan', 'like', "%$s%");
+                          });
+                });
+            })
             ->when($request->jenis, fn($q, $j) => $q->where('jenis_transaksi', $j))
             ->when($request->kategori, fn($q, $k) => $q->where('kategori', $k))
+            ->when($request->dari_tanggal, fn($q, $d) => $q->whereDate('tanggal', '>=', $d))
+            ->when($request->sampai_tanggal, fn($q, $s) => $q->whereDate('tanggal', '<=', $s))
             ->orderByDesc('tanggal')
             ->paginate(15)
             ->withQueryString();

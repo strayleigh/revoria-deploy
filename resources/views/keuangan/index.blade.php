@@ -139,7 +139,7 @@
                     <div class="col-lg">
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                            <input type="text" name="search" class="form-control" placeholder="Cari keterangan" value="{{ request('search') }}">
+                            <input type="text" name="search" class="form-control" placeholder="Cari keterangan atau kegiatan" value="{{ request('search') }}">
                         </div>
                     </div>
                     <div class="col-lg-auto">
@@ -157,6 +157,11 @@
                             <option value="pengeluaran" {{ request('jenis') == 'pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
                         </select>
                     </div>
+                    <div class="col-lg-auto">
+                        <button type="button" class="btn btn-outline-secondary px-3 {{ request('dari_tanggal') || request('sampai_tanggal') ? 'active' : '' }}" onclick="toggleDateFilter()">
+                            <i class="bi bi-calendar3"></i> Tanggal
+                        </button>
+                    </div>
                     <div class="col-lg-auto d-flex gap-2">
                         <button type="submit" class="btn btn-outline-secondary px-3"><i class="bi bi-search"></i></button>
                         <a href="{{ route('keuangan.index') }}" class="btn btn-outline-secondary px-3"><i class="bi bi-x-lg"></i></a>
@@ -165,6 +170,17 @@
                             <i class="bi bi-plus-circle"></i> Catat Transaksi
                         </a>
                         @endif
+                    </div>
+                </div>
+
+                <div id="dateFilterCollapse" class="mt-3 {{ request('dari_tanggal') || request('sampai_tanggal') ? '' : 'd-none' }}">
+                    <div class="card card-body bg-light border-0 py-2 px-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-semibold small text-muted">Rentang Tanggal:</span>
+                            <input type="date" name="dari_tanggal" class="form-control form-control-sm" value="{{ request('dari_tanggal') }}" onchange="this.form.submit()" style="max-width: 160px;">
+                            <span class="text-muted small">s.d.</span>
+                            <input type="date" name="sampai_tanggal" class="form-control form-control-sm" value="{{ request('sampai_tanggal') }}" onchange="this.form.submit()" style="max-width: 160px;">
+                        </div>
                     </div>
                 </div>
             </form>
@@ -247,4 +263,15 @@
             </div>
         @endif
     </div>
+
+    <script>
+        function toggleDateFilter() {
+            const div = document.getElementById('dateFilterCollapse');
+            if (div.classList.contains('d-none')) {
+                div.classList.remove('d-none');
+            } else {
+                div.classList.add('d-none');
+            }
+        }
+    </script>
 </x-sidebar>
